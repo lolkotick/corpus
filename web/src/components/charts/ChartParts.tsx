@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { Lang } from '../../data/types';
 import { cx } from '../../lib/styles';
 import { LangBadge } from '../ui';
+import { ScrollArea } from '../ScrollArea';
 
 export function ChartCard({
   id,
@@ -50,7 +51,9 @@ export function ChartCard({
         <summary className="cursor-pointer text-muted select-none hover:text-ink">
           Таблица данных
         </summary>
-        <div className="mt-3 overflow-x-auto">{table}</div>
+        <ScrollArea label={`Таблица данных: ${title}`} className="mt-3">
+          {table}
+        </ScrollArea>
       </details>
     </section>
   );

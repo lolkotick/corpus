@@ -91,6 +91,19 @@ const SHOTS = [
     full: true,
   },
   { name: 'about', route: '/about', theme: 'light', size: DESKTOP, full: false },
+  { name: 'pair-mobile', route: '/pair/example-018', theme: 'light', size: MOBILE, full: false },
+  {
+    name: 'menu-mobile',
+    route: '/stats',
+    theme: 'dark',
+    size: MOBILE,
+    full: false,
+    actions: async (page) => {
+      await page.getByRole('button', { name: 'Открыть меню' }).click();
+      await page.waitForTimeout(300);
+    },
+  },
+  { name: 'not-found', route: '/nope', theme: 'light', size: DESKTOP, full: false },
 ];
 
 const selected = only.length ? SHOTS.filter((s) => only.some((o) => s.name.startsWith(o))) : SHOTS;

@@ -174,8 +174,25 @@ export interface TextStat {
   };
 }
 
+export interface BuildLog {
+  total_seconds: number;
+  stages: { name: string; seconds: number; detail: string }[];
+  warnings: string[];
+  manual: { applied?: number; deleted?: number; skipped?: number };
+  lexicon: { entries?: number; links?: number };
+  llm: {
+    model: string;
+    api: boolean;
+    candidates: number;
+    checked: number;
+    suggestions: number;
+    note: string;
+  };
+}
+
 export interface Stats {
   generated_at: string;
+  build?: BuildLog;
   totals: {
     pairs: number;
     texts: number;

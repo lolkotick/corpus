@@ -15,7 +15,7 @@ from pipeline.annotate.en import annotate_en
 from pipeline.annotate.ru import annotate_ru
 from pipeline.annotate.zh import annotate_zh
 from pipeline.config import Config
-from pipeline.export import write_outputs
+from pipeline.export import dump_json, write_outputs
 from pipeline.lexicon import build_links
 from pipeline.llm import LlmStats, review
 from pipeline.manual import Overrides, apply_overrides
@@ -244,5 +244,23 @@ def run_build(config: Config, use_llm: bool = True) -> BuildResult:
 
     result.records = records
     result.total_seconds = time.perf_counter() - t0
+    # Журнал сборки для страницы «О проекте» (то же, что в logs/build_report.md, кратко).
+    result.stats["build"] = {
+        "total_seconds": round(result.total_seconds, 2),
+        "stages": [{"name": s.name, "seconds": round(s.seconds, 3), "detail": s.detail}
+                   for s in result.stages],
+        "warnings": result.warnings,
+        "manual": result.manual,
+        "lexicon": result.lexicon,
+        "llm": {
+            "model": result.llm.model,
+            "api": result.llm.enabled,
+            "candidates": result.llm.candidates,
+            "checked": result.llm.checked,
+            "suggestions": result.llm.suggestions,
+            "note": result.llm.reason,
+        },
+    }
+    dump_json(config.path("output") / "stats.json", result.stats)
     write_report(config.path("logs") / "build_report.md", result, config)
     return result

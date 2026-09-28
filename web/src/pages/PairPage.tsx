@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { Container } from '../components/Container';
 import { DataGate } from '../components/DataGate';
+import { ScrollArea } from '../components/ScrollArea';
 import { HighlightedText } from '../components/HighlightedText';
 import { AlertIcon, ArrowLeftIcon, ArrowRightIcon, SparkIcon } from '../components/icons';
 import { EmptyState, LangBadge, LangLabel, ScoreMeter, StatusBadge } from '../components/ui';
@@ -388,7 +389,11 @@ function PairContent({ pair, data }: { pair: Pair; data: CorpusIndex }) {
           {LANGS.map((lang) => {
             const anns = pair.annotations[lang];
             return (
-              <div key={lang} className="overflow-x-auto rounded-2xl border border-rule bg-surface">
+              <ScrollArea
+                key={lang}
+                label={`Разметка: ${PHENOMENA[LANG_INFO[lang].phenomenon].label}`}
+                className="rounded-2xl border border-rule bg-surface"
+              >
                 <div className="flex items-center justify-between gap-2 border-b border-rule px-4 py-3">
                   <h3 className="flex items-center gap-2 font-semibold">
                     <LangBadge lang={lang} /> {PHENOMENA[LANG_INFO[lang].phenomenon].label}
@@ -406,7 +411,7 @@ function PairContent({ pair, data }: { pair: Pair; data: CorpusIndex }) {
                 ) : (
                   <CaseTable anns={pair.annotations.ru} />
                 )}
-              </div>
+              </ScrollArea>
             );
           })}
         </div>
@@ -419,7 +424,10 @@ function PairContent({ pair, data }: { pair: Pair; data: CorpusIndex }) {
             по совместной встречаемости в парах и «конкурентное связывание» с учётом позиции слова в
             предложении. Это автоматическая оценка, а не словарь.
           </p>
-          <div className="overflow-x-auto rounded-2xl border border-rule bg-surface">
+          <ScrollArea
+            label="Переводные эквиваленты"
+            className="rounded-2xl border border-rule bg-surface"
+          >
             <table className="w-full text-[15px]">
               <thead className="border-b border-rule">
                 <tr>
@@ -455,7 +463,7 @@ function PairContent({ pair, data }: { pair: Pair; data: CorpusIndex }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollArea>
         </Section>
       )}
 

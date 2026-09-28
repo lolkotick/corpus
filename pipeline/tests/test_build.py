@@ -36,6 +36,8 @@ def test_full_build_on_example(project):
     assert stats["totals"]["annotations"]["article"] == sum(stats["articles"]["counts"].values())
     assert sum(b["count"] for b in stats["alignment"]["histogram"]) == 24
     assert {c["case"] for c in stats["cases"]} >= {"nomn", "gent", "datv", "accs", "ablt", "loct"}
+    assert stats["build"]["stages"][0]["name"] == "Чтение текстов"
+    assert stats["build"]["llm"]["api"] is False
 
     with open(out / "corpus.csv", encoding="utf-8-sig") as fh:
         rows = list(csv.DictReader(fh))

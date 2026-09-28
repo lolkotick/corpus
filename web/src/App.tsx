@@ -4,7 +4,7 @@ import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { LoadingState } from './components/ui';
 import { CorpusProvider } from './data/CorpusProvider';
-import { ComingSoonPage } from './pages/ComingSoonPage';
+import { AboutPage } from './pages/AboutPage';
 import { ExercisesPage } from './pages/ExercisesPage';
 import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -35,7 +35,7 @@ export function App() {
             />
             <Route path="exercises" element={<ExercisesPage />} />
             <Route path="exercises/print" element={<PrintPage />} />
-            <Route path="about" element={<ComingSoonPage title="О проекте" />} />
+            <Route path="about" element={<AboutPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
