@@ -1,0 +1,13 @@
+# Основные зависимости pipeline (Python 3.11)
+razdel==0.5.0
+pysbd==0.3.4
+jieba==0.42.1
+pymorphy3==2.0.6
+pymorphy3-dicts-ru>=2.4
+spacy>=3.8,<3.9
+pyyaml>=6.0
+python-dotenv>=1.0
+numpy>=1.26
+anthropic>=1.8
+# Английская модель spaCy (ставится отдельной командой, см. README):
+#   python -m spacy download en_core_web_sm
