@@ -29,7 +29,7 @@ def count_han(text: str) -> int:
     return len(_HAN.findall(text))
 
 
-def _dump(path: Path, payload: Any) -> None:
+def dump_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", "utf-8")
 
@@ -272,7 +272,7 @@ def write_outputs(
         "pairs": records,
     }
     stats = compute_stats(records, texts_out, classifiers, build, bins)
-    _dump(output_dir / "corpus.json", corpus)
-    _dump(output_dir / "stats.json", stats)
+    dump_json(output_dir / "corpus.json", corpus)
+    dump_json(output_dir / "stats.json", stats)
     write_csv(output_dir / "corpus.csv", records, {t["id"]: t for t in texts_out}, delimiter)
     return stats
