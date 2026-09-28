@@ -128,9 +128,7 @@ function HomeContent({ corpus, stats }: CorpusIndex) {
         <dl className="mt-12 grid grid-cols-2 border-t border-rule md:grid-cols-4">
           {numbers.map((n) => (
             <div key={n.label} className="py-6 pr-4">
-              <dd className="font-serif text-[40px] leading-none font-semibold tabular-nums">
-                {n.value}
-              </dd>
+              <dd className="text-[40px] leading-none font-semibold">{n.value}</dd>
               <dt className="mt-2 text-[13.5px] text-muted">{n.label}</dt>
             </div>
           ))}

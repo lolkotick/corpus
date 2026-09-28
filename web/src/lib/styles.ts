@@ -10,11 +10,11 @@ export const LANG_CLASSES: Record<
   ru: { text: 'text-ru', tint: 'bg-ru-tint', border: 'border-ru', bg: 'bg-ru' },
 };
 
-/** CSS-переменные языков — для SVG и графиков. */
-export const LANG_VARS: Record<Lang, { color: string; tint: string }> = {
-  en: { color: 'var(--en)', tint: 'var(--en-tint)' },
-  zh: { color: 'var(--zh)', tint: 'var(--zh-tint)' },
-  ru: { color: 'var(--ru)', tint: 'var(--ru-tint)' },
+/** CSS-переменные языков для SVG и графиков: mark — заливка меток, color — текст. */
+export const LANG_VARS: Record<Lang, { color: string; tint: string; mark: string }> = {
+  en: { color: 'var(--en)', tint: 'var(--en-tint)', mark: 'var(--en-mark)' },
+  zh: { color: 'var(--zh)', tint: 'var(--zh-tint)', mark: 'var(--zh-mark)' },
+  ru: { color: 'var(--ru)', tint: 'var(--ru-tint)', mark: 'var(--ru-mark)' },
 };
 
 export function cx(...parts: (string | false | null | undefined)[]): string {
