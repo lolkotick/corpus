@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Макеты интерфейса корпуса</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── Общие токены макетов (светлая и тёмная тема) ─────────────────────────── */
+  :root {
+    --bg: #f3f1ec; --paper: #fbfaf7; --surface: #ffffff; --ink: #1c1b19; --muted: #5f5b53;
+    --rule: #e4dfd4; --rule-strong: #cfc8b9;
+    --en: #1f5fad; --en-tint: #e8f0fa; --zh: #b5421f; --zh-tint: #fbece6; --ru: #16795a; --ru-tint: #e3f2ea;
+    --focus: #1f5fad;
+    --sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    --serif: "Source Serif 4", "Noto Serif SC", Georgia, serif;
+    --zh-font: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1012; --paper: #15171a; --surface: #1b1d21; --ink: #ece9e2; --muted: #a8a397;
+      --rule: #2b2e33; --rule-strong: #3a3e45;
+      --en: #8db6f2; --en-tint: #1b2a3f; --zh: #f19a79; --zh-tint: #3a2119; --ru: #6fcfa6; --ru-tint: #16302a;
+      --focus: #8db6f2; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1012; --paper: #15171a; --surface: #1b1d21; --ink: #ece9e2; --muted: #a8a397;
+    --rule: #2b2e33; --rule-strong: #3a3e45;
+    --en: #8db6f2; --en-tint: #1b2a3f; --zh: #f19a79; --zh-tint: #3a2119; --ru: #6fcfa6; --ru-tint: #16302a;
+    --focus: #8db6f2; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 var(--sans); }
+  :lang(zh), .zh { font-family: var(--zh-font); line-height: 1.85; letter-spacing: .02em; }
+  a { color: inherit; }
+  button { font: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+  .doc { max-width: 1280px; margin: 0 auto; padding: 32px 16px 80px; }
+  .doc-head { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; justify-content: space-between; margin-bottom: 24px; }
+  .doc-head h1 { font: 700 28px/1.2 var(--serif); margin: 0 0 6px; }
+  .doc-head p { margin: 0; color: var(--muted); max-width: 70ch; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tabs button, .theme-btn { border: 1px solid var(--rule-strong); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .variant { display: none; }
+  .variant.active { display: block; }
+  .variant-intro { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 8px 0 20px; }
+  .variant-intro h2 { font: 600 20px/1.3 var(--sans); margin: 0; }
+  .variant-intro p { margin: 0; color: var(--muted); }
+  .pill { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--rule-strong); color: var(--muted); margin-right: 6px; }
+  .frames { display: grid; gap: 28px; }
+  .frame { border: 1px solid var(--rule-strong); border-radius: 14px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 0 var(--rule); }
+  .frame-label { font: 500 12px/1 var(--mono); color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--rule); background: var(--surface); display: flex; gap: 8px; align-items: center; }
+  .frame-label i { width: 9px; height: 9px; border-radius: 50%; background: var(--rule-strong); display: inline-block; }
+  .phone { max-width: 390px; }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 28px; align-items: start; }
+  @media (max-width: 1100px) { .row { grid-template-columns: 1fr; } }
+
+  /* Цвета языков — общий словарь */
+  .en-c { color: var(--en); } .zh-c { color: var(--zh); } .ru-c { color: var(--ru); }
+  mark { background: none; color: inherit; }
+  .hl-en { background: var(--en-tint); box-shadow: inset 0 -2px 0 var(--en); border-radius: 2px; }
+  .hl-zh { background: var(--zh-tint); box-shadow: inset 0 -2px 0 var(--zh); border-radius: 2px; }
+  .hl-ru { background: var(--ru-tint); box-shadow: inset 0 -2px 0 var(--ru); border-radius: 2px; }
+  .q { background: #ffe58a66; border-radius: 2px; outline: 1px solid #d4a70066; }
+  :root[data-theme="dark"] .q { background: #8a6d0055; }
+
+  /* ═══ Вариант A: швейцарская сетка ═══════════════════════════════════════ */
+  .vA { font-family: var(--sans); }
+  .vA .nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 40px; border-bottom: 1px solid var(--ink); }
+  .vA .logo { font-weight: 700; letter-spacing: -.02em; }
+  .vA .nav ul { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .vA .hero { padding: 72px 40px 40px; display: grid; grid-template-columns: 7fr 5fr; gap: 40px; }
+  .vA .hero h1 { font: 700 56px/1.02 var(--sans); letter-spacing: -.035em; margin: 0; }
+  .vA .hero p { color: var(--muted); font-size: 18px; margin: 18px 0 28px; }
+  .vA .btn { display: inline-block; padding: 12px 20px; border: 1.5px solid var(--ink); text-decoration: none; font-weight: 600; margin-right: 10px; }
+  .vA .btn.primary { background: var(--ink); color: var(--paper); }
+  .vA .nums { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--ink); margin: 0 40px; }
+  .vA .num { padding: 20px 0; border-right: 1px solid var(--rule); }
+  .vA .num:last-child { border-right: 0; }
+  .vA .num b { display: block; font-size: 44px; letter-spacing: -.03em; line-height: 1; }
+  .vA .num span { font-size: 13px; color: var(--muted); }
+  .vA .phen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 40px; border: 1px solid var(--ink); }
+  .vA .phen div { padding: 20px; border-right: 1px solid var(--ink); }
+  .vA .phen div:last-child { border-right: 0; }
+  .vA .phen h3 { margin: 0 0 6px; font-size: 15px; }
+  .vA .phen .bar { height: 4px; margin-bottom: 14px; }
+  .vA .search { padding: 28px 40px; }
+  .vA .sbox { display: flex; border: 1.5px solid var(--ink); }
+  .vA .sbox input { flex: 1; border: 0; padding: 14px 16px; font-size: 17px; background: transparent; color: var(--ink); }
+  .vA .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 22px; }
+  .vA .chip { font-size: 13px; padding: 4px 10px; border: 1px solid var(--rule-strong); }
+  .vA .cols { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1.5px solid var(--ink); }
+  .vA .cols > div { padding: 10px 14px 14px 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+  .vA .res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+
+  /* ═══ Вариант B: академическое издание (выбран) ═════════════════════════ */
+  .vB { background: var(--paper); }
+  .vB .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 48px; }
+  .vB .logo { display: flex; align-items: baseline; gap: 10px; }
+  .vB .logo b { font: 700 19px/1 var(--serif); }
+  .vB .logo small { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+  .vB .langdots { display: inline-flex; gap: 4px; }
+  .vB .langdots i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .vB .nav ul { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; font-size: 14.5px; }
+  .vB .nav a { text-decoration: none; padding: 6px 12px; border-radius: 8px; color: var(--muted); }
+  .vB .nav a.cur { color: var(--ink); background: var(--surface); box-shadow: 0 0 0 1px var(--rule); }
+  .vB .hero { padding: 64px 48px 32px; max-width: 980px; }
+  .vB .eyebrow { font-size: 13px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+  .vB .hero h1 { font: 600 48px/1.12 var(--serif); letter-spacing: -.01em; margin: 14px 0 18px; }
+  .vB .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--zh-tint) 0); }
+  .vB .lead { font-size: 18.5px; color: var(--muted); max-width: 62ch; margin: 0 0 30px; }
+  .vB .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 10px; font-weight: 600; text-decoration: none; margin-right: 10px; }
+  .vB .btn.primary { background: var(--ink); color: var(--paper); }
+  .vB .btn.ghost { box-shadow: inset 0 0 0 1px var(--rule-strong); }
+  .vB .triple { margin: 8px 48px 0; padding: 26px 28px; background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .vB .triple .lang { font: 600 11.5px/1 var(--sans); letter-spacing: .1em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .vB .triple .lang::before { content: ""; width: 18px; height: 2px; background: currentColor; }
+  .vB .triple p { margin: 0; font: 400 19px/1.55 var(--serif); }
+  .vB .triple p.zh { font: 400 18px/1.85 var(--zh-font); }
+  .vB .nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 40px 48px 0; border-top: 1px solid var(--rule); }
+  .vB .num { padding: 22px 0 8px; }
+  .vB .num b { display: block; font: 600 38px/1 var(--serif); }
+  .vB .num span { font-size: 13.5px; color: var(--muted); }
+  .vB .phen { margin: 36px 48px 56px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .vB .phen article { padding: 20px 22px; border-radius: 14px; border: 1px solid var(--rule); background: var(--surface); position: relative; overflow: hidden; }
+  .vB .phen article::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--c); }
+  .vB .phen h3 { margin: 4px 0 6px; font: 600 17px/1.3 var(--sans); }
+  .vB .phen p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .vB .badge { font: 600 11px/1 var(--sans); letter-spacing: .08em; padding: 4px 7px; border-radius: 6px; color: var(--c); background: var(--t); }
+  .vB .search { padding: 30px 48px 40px; }
+  .vB .sbox { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--rule-strong); border-radius: 12px; padding: 6px 6px 6px 16px; }
+  .vB .sbox input { flex: 1; border: 0; font-size: 17px; background: transparent; color: var(--ink); padding: 10px 0; }
+  .vB .seg { display: inline-flex; background: var(--bg); border-radius: 9px; padding: 3px; }
+  .vB .seg span { padding: 6px 12px; border-radius: 7px; font-size: 13.5px; color: var(--muted); }
+  .vB .seg span.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px #0000001a; }
+  .vB .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 24px; align-items: center; }
+  .vB .f { font-size: 13.5px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--rule-strong); background: var(--surface); }
+  .vB .f.on { border-color: var(--ru); color: var(--ru); background: var(--ru-tint); }
+  .vB .meta { font-size: 13.5px; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .vB .colhead { display: grid; grid-template-columns: 70px repeat(3, 1fr); gap: 26px; padding: 0 0 10px; border-bottom: 1px solid var(--rule); }
+  .vB .colhead div { font: 600 11.5px/1 var(--sans); letter-spacing: .1em; display: flex; align-items: center; gap: 6px; }
+  .vB .colhead div::before { content: ""; width: 14px; height: 2px; background: currentColor; }
+  .vB .colhead div:first-child::before { display: none; }
+  .vB .res { display: grid; grid-template-columns: 70px repeat(3, 1fr); gap: 26px; padding: 18px 0; border-bottom: 1px solid var(--rule); }
+  .vB .res .id { font: 500 12px/1.5 var(--mono); color: var(--muted); }
+  .vB .res .id small { display: block; font-family: var(--sans); margin-top: 6px; }
+  .vB .res p { margin: 0; font: 400 16.5px/1.6 var(--serif); }
+  .vB .res p.zh { font: 400 16px/1.85 var(--zh-font); }
+  .vB .kwic { margin-top: 26px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 8px 0; font-size: 15px; }
+  .vB .kwic div { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; padding: 7px 18px; }
+  .vB .kwic div:nth-child(odd) { background: var(--paper); }
+  .vB .kwic .l { text-align: right; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; }
+  .vB .kwic .r { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vB .kwic b { color: var(--ru); font-weight: 600; }
+  /* мобильная карточка */
+  .vB.m { padding: 16px; }
+  .vB.m .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+  .vB.m .card .ln { display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 6px 0; border-top: 1px dashed var(--rule); }
+  .vB.m .card .ln:first-of-type { border-top: 0; }
+  .vB.m .card .ln b { font: 600 11px/2 var(--sans); letter-spacing: .06em; }
+  .vB.m .card p { margin: 0; font: 400 15.5px/1.55 var(--serif); }
+  .vB.m .card p.zh { font: 400 15px/1.85 var(--zh-font); }
+
+  /* ═══ Вариант C: рабочее пространство с панелью фильтров ════════════════ */
+  .vC { background: var(--bg); display: grid; grid-template-columns: 240px 1fr; min-height: 560px; }
+  .vC aside { background: var(--surface); border-right: 1px solid var(--rule); padding: 20px; font-size: 14px; }
+  .vC aside h4 { margin: 18px 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .vC aside label { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+  .vC .logo { font-weight: 700; margin-bottom: 10px; }
+  .vC main { padding: 22px 26px; }
+  .vC .top { display: flex; gap: 10px; margin-bottom: 18px; }
+  .vC .top input { flex: 1; border: 1px solid var(--rule-strong); border-radius: 10px; padding: 12px 14px; font-size: 16px; background: var(--surface); color: var(--ink); }
+  .vC .card { background: var(--surface); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px #0000000f, 0 8px 24px -12px #00000026; }
+  .vC .card .h { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+  .vC .card .ln { display: flex; gap: 10px; padding: 5px 0; }
+  .vC .tag { font: 700 10.5px/1 var(--sans); padding: 5px 7px; border-radius: 6px; color: #fff; height: fit-content; margin-top: 4px; }
+  .vC .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .vC .kpi { background: var(--surface); border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px #0000000f; }
+  .vC .kpi b { font-size: 28px; display: block; }
+  .vC .kpi span { font-size: 13px; color: var(--muted); }
+
+  .decision { margin-top: 36px; background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; padding: 24px 28px; }
+  .decision h2 { font: 600 22px/1.3 var(--serif); margin: 0 0 10px; }
+  .decision table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 14px 0; }
+  .decision th, .decision td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .decision th { font-weight: 600; }
+  .palette { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; }
+  .sw { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .sw i { width: 34px; height: 34px; border-radius: 9px; display: inline-block; border: 1px solid var(--rule); }
+  @media (max-width: 760px) {
+    .vA .hero, .vB .triple, .vB .phen, .vA .phen, .vA .res, .vB .res, .vB .colhead, .vA .cols { grid-template-columns: 1fr; }
+    .vB .nums, .vC .kpis { grid-template-columns: repeat(2, 1fr); }
+    .vA .hero h1 { font-size: 38px; } .vB .hero h1 { font-size: 34px; }
+    .vB .nav, .vA .nav { flex-wrap: wrap; gap: 10px; padding: 16px; }
+    .vB .hero, .vB .search, .vA .search { padding-left: 16px; padding-right: 16px; }
+    .vB .triple, .vB .nums, .vB .phen, .vA .nums, .vA .phen { margin-left: 16px; margin-right: 16px; }
+    .vC { grid-template-columns: 1fr; } .vC aside { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+  <header class="doc-head">
+    <div>
+      <h1>Макеты: главная и поиск</h1>
+      <p>Три направления оформления учебного параллельного корпуса EN / ZH / RU. У каждого языка — постоянный акцентный цвет: <b class="en-c">EN — синий</b>, <b class="zh-c">ZH — киноварь</b>, <b class="ru-c">RU — зелёный</b>. Переключатель темы проверяет обе палитры.</p>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+      <div class="tabs" role="tablist" aria-label="Варианты макета">
+        <button role="tab" aria-selected="false" data-v="A">A · Швейцарская сетка</button>
+        <button role="tab" aria-selected="true" data-v="B">B · Академическое издание ✓</button>
+        <button role="tab" aria-selected="false" data-v="C">C · Рабочее пространство</button>
+      </div>
+      <button class="theme-btn" id="theme" type="button" aria-label="Переключить тему">◐ Тема</button>
+    </div>
+  </header>
+
+  <!-- ═══ A ═══ -->
+  <section class="variant" id="vA" role="tabpanel" aria-label="Вариант A">
+    <div class="variant-intro">
+      <h2>A. Швейцарская сетка</h2>
+      <p>Один гротеск (Inter), жёсткие линейки, крупные цифры, минимум цвета. Строго и современно, но холодновато: похоже на аналитическую панель, язык подаётся как данные.</p>
+      <div><span class="pill">Inter</span><span class="pill">линейки 1 px</span><span class="pill">цвет только в подсветке</span></div>
+    </div>
+    <div class="frames">
+      <div class="frame"><div class="frame-label"><i></i><i></i><i></i>Главная · 1280</div>
+        <div class="vA">
+          <div class="nav"><span class="logo">ParaCorpus EN·ZH·RU</span><ul><li>Поиск</li><li>Статистика</li><li>Упражнения</li><li>О проекте</li></ul></div>
+          <div class="hero">
+            <div><h1>Параллельный учебный корпус</h1><p>110 троек предложений на английском, китайском и русском с разметкой артиклей, счётных слов и падежей.</p><a class="btn primary" href="#">Поиск</a><a class="btn" href="#">Упражнения</a></div>
+            <div style="align-self:end; font-size:15px; color:var(--muted)">Тексты уровней A1–C1 · выравнивание с опорным английским · ручная и LLM-проверка</div>
+          </div>
+          <div class="nums"><div class="num"><b>110</b><span>пар предложений</span></div><div class="num"><b>6</b><span>текстов</span></div><div class="num"><b>615</b><span>размеченных явлений</span></div></div>
+          <div class="phen">
+            <div><div class="bar" style="background:var(--en)"></div><h3>Артикли</h3><span style="color:var(--muted); font-size:14px">a / an / the и существительное</span></div>
+            <div><div class="bar" style="background:var(--zh)"></div><h3>Счётные слова 量词</h3><span style="color:var(--muted); font-size:14px">一本书, 两张桌子</span></div>
+            <div><div class="bar" style="background:var(--ru)"></div><h3>Падежи</h3><span style="color:var(--muted); font-size:14px">шесть падежей, число, лемма</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="frame"><div class="frame-label"><i></i><i></i><i></i>Поиск · 1280</div>
+        <div class="vA"><div class="search">
+          <div class="sbox"><input value="книг" aria-label="Запрос"></div>
+          <div class="chips"><span class="chip">Явление: падеж</span><span class="chip">Родительный</span><span class="chip">Уровень: все</span><span class="chip">Score ≥ 0.3</span></div>
+          <div class="cols"><div class="en-c">EN</div><div class="zh-c">ZH</div><div class="ru-c">RU</div></div>
+          <div class="res"><div>Anna wanted to find a <mark class="hl-en">book</mark> about the history of China.</div><div class="zh">安娜想找一本关于中国历史的<mark class="hl-zh">书</mark>。</div><div>Анна хотела найти <mark class="q">книг</mark>у по истории Китая.</div></div>
+          <div class="res"><div>One of the <mark class="hl-en">books</mark> was very thick; the other two were thin.</div><div class="zh">其中一本<mark class="hl-zh">书</mark>很厚；另外两本很薄。</div><div>Одна из <mark class="q">книг</mark> была очень толстой, а две другие — тонкими.</div></div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ B ═══ -->
+  <section class="variant active" id="vB" role="tabpanel" aria-label="Вариант B">
+    <div class="variant-intro">
+      <h2>B. Академическое издание — выбранный вариант</h2>
+      <p>Бумажный фон, антиква Source Serif 4 для заголовков и текстов предложений, Inter для интерфейса, Noto Sans SC для иероглифов с увеличенным интерлиньяжем. Параллельный текст подаётся как в двуязычном издании: колонки с цветной «линейкой языка», тонкие разделители, много воздуха.</p>
+      <div><span class="pill">Source Serif 4 + Inter + Noto Sans SC</span><span class="pill">цветная метка языка у каждой колонки</span><span class="pill">KWIC-режим</span></div>
+    </div>
+    <div class="frames">
+      <div class="frame"><div class="frame-label"><i></i><i></i><i></i>Главная · 1280</div>
+        <div class="vB">
+          <div class="nav">
+            <div class="logo"><span class="langdots"><i style="background:var(--en)"></i><i style="background:var(--zh)"></i><i style="background:var(--ru)"></i></span><b>Параллельный корпус</b><small>EN · 中文 · RU</small></div>
+            <ul><li><a class="cur" href="#">Главная</a></li><li><a href="#">Поиск</a></li><li><a href="#">Статистика</a></li><li><a href="#">Упражнения</a></li><li><a href="#">О проекте</a></li></ul>
+          </div>
+          <div class="hero">
+            <div class="eyebrow">Учебный корпус · английский · китайский · русский</div>
+            <h1>Одно предложение — три языка и <em>три грамматики</em></h1>
+            <p class="lead">Сравнивайте, как английский выражает определённость артиклем, китайский — счётным словом, а русский — падежом. Каждое явление размечено и связано с упражнениями.</p>
+            <a class="btn primary" href="#">Искать в корпусе →</a><a class="btn ghost" href="#">Упражнения</a>
+          </div>
+          <div class="triple">
+            <div><div class="lang en-c">ENGLISH</div><p>She ordered <mark class="hl-en">a</mark> cup of tea and <mark class="hl-en">a</mark> piece of apple pie.</p></div>
+            <div><div class="lang zh-c">中文</div><p class="zh" lang="zh">她点了一<mark class="hl-zh">杯</mark>茶和一<mark class="hl-zh">块</mark>苹果派。</p></div>
+            <div><div class="lang ru-c">РУССКИЙ</div><p>Она заказала <mark class="hl-ru">чашку</mark> чая и <mark class="hl-ru">кусок</mark> яблочного пирога.</p></div>
+          </div>
+          <div class="nums">
+            <div class="num"><b>110</b><span>троек предложений</span></div>
+            <div class="num"><b>6</b><span>текстов, A1–C1</span></div>
+            <div class="num"><b>32</b><span>разных 量词</span></div>
+            <div class="num"><b>615</b><span>размеченных явлений</span></div>
+          </div>
+          <div class="phen">
+            <article style="--c:var(--en); --t:var(--en-tint)"><span class="badge">EN</span><h3>Артикли a / an / the</h3><p>Определённость и неопределённость; к какому существительному относится артикль.</p></article>
+            <article style="--c:var(--zh); --t:var(--zh-tint)"><span class="badge">ZH</span><h3>Счётные слова 量词</h3><p>«Число / 这 / 那 / 每 + 量词 + существительное»: 一本书, 两张桌子.</p></article>
+            <article style="--c:var(--ru); --t:var(--ru-tint)"><span class="badge">RU</span><h3>Падежи</h3><p>Падеж, число и лемма каждого существительного, влияние предлогов.</p></article>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="frame"><div class="frame-label"><i></i><i></i><i></i>Поиск · параллельные колонки и KWIC · 1280</div>
+          <div class="vB"><div class="search">
+            <div class="sbox"><span aria-hidden="true" style="color:var(--muted)">⌕</span><input value="книг" aria-label="Запрос"><span class="seg"><span class="on">Колонки</span><span>KWIC</span></span></div>
+            <div class="filters">
+              <span class="f">Явление: <b>все</b></span><span class="f on">Падеж: родительный ✕</span><span class="f">Текст: все</span><span class="f">Уровень: A1–C1</span><span class="f">Статус: все</span><span class="f">Score ≥ 0.30</span>
+            </div>
+            <div class="meta"><span>Найдено 14 пар · совпадения в RU по лемме «книга»</span><span>Сортировка: по порядку в тексте</span></div>
+            <div class="colhead"><div style="color:var(--muted)">ПАРА</div><div class="en-c">ENGLISH</div><div class="zh-c">中文</div><div class="ru-c">РУССКИЙ</div></div>
+            <div class="res"><div class="id">example<br>011<small>1–2–1 · 0.81</small></div><p>One of the <mark class="hl-en">books</mark> was very thick; the other two were thin.</p><p class="zh" lang="zh">其中一本<mark class="hl-zh">书</mark>很厚；另外两本很薄。</p><p>Одна из <mark class="q">книг</mark> была очень толстой, а две другие — тонкими.</p></div>
+            <div class="res"><div class="id">example<br>024<small>1–1–1 · 0.62</small></div><p>Anna went home with a bag full of <mark class="hl-en">books</mark> and an idea for a new story.</p><p class="zh" lang="zh">安娜带着满满一袋<mark class="hl-zh">书</mark>和一个新故事的主意回家了。</p><p>Анна пошла домой с сумкой, полной <mark class="q">книг</mark>, и с идеей нового рассказа.</p></div>
+            <div class="kwic" aria-label="Конкорданс">
+              <div><span class="l">Одна из</span><b>книг</b><span class="r">была очень толстой, а две другие — тонкими.</span></div>
+              <div><span class="l">Анна пошла домой с сумкой, полной</span><b>книг</b><span class="r">, и с идеей нового рассказа.</span></div>
+              <div><span class="l">Она взяла две</span><b>книги</b><span class="r">на неделю.</span></div>
+            </div>
+          </div></div>
+        </div>
+        <div class="frame phone"><div class="frame-label"><i></i><i></i><i></i>Поиск · 390 (телефон)</div>
+          <div class="vB m">
+            <div class="sbox" style="margin-bottom:12px"><span aria-hidden="true" style="color:var(--muted)">⌕</span><input value="книг" aria-label="Запрос"></div>
+            <div class="filters" style="margin:0 0 12px"><span class="f on">Родительный ✕</span><span class="f">Фильтры · 2</span></div>
+            <div class="card"><div class="meta" style="margin:0 0 6px"><span>example-011</span><span>1–2–1 · 0.81</span></div>
+              <div class="ln"><b class="en-c">EN</b><p>One of the <mark class="hl-en">books</mark> was very thick; the other two were thin.</p></div>
+              <div class="ln"><b class="zh-c">ZH</b><p class="zh" lang="zh">其中一本<mark class="hl-zh">书</mark>很厚；另外两本很薄。</p></div>
+              <div class="ln"><b class="ru-c">RU</b><p>Одна из <mark class="q">книг</mark> была очень толстой, а две другие — тонкими.</p></div>
+            </div>
+            <div class="card"><div class="meta" style="margin:0 0 6px"><span>example-021</span><span>1–1–1 · 0.71</span></div>
+              <div class="ln"><b class="en-c">EN</b><p>She borrowed two <mark class="hl-en">books</mark> for a week.</p></div>
+              <div class="ln"><b class="zh-c">ZH</b><p class="zh" lang="zh">她借了两本<mark class="hl-zh">书</mark>，借期一个星期。</p></div>
+              <div class="ln"><b class="ru-c">RU</b><p>Она взяла две <mark class="q">книги</mark> на неделю.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ C ═══ -->
+  <section class="variant" id="vC" role="tabpanel" aria-label="Вариант C">
+    <div class="variant-intro">
+      <h2>C. Рабочее пространство</h2>
+      <p>Постоянная панель фильтров слева, карточки с тенями, KPI-плитки. Удобно для частой работы исследователя, но это и есть «шаблонная админка», которой просили избегать; на телефоне панель приходится прятать.</p>
+      <div><span class="pill">боковая панель</span><span class="pill">карточки с тенью</span><span class="pill">цветные ярлыки языков</span></div>
+    </div>
+    <div class="frames">
+      <div class="frame"><div class="frame-label"><i></i><i></i><i></i>Главная + поиск · 1280</div>
+        <div class="vC">
+          <aside><div class="logo">Корпус EN/ZH/RU</div>
+            <h4>Явление</h4><label><input type="checkbox" checked> Артикли</label><label><input type="checkbox" checked> 量词</label><label><input type="checkbox" checked> Падежи</label>
+            <h4>Падеж</h4><label><input type="radio" name="c"> Все</label><label><input type="radio" name="c" checked> Родительный</label>
+            <h4>Уровень</h4><label><input type="checkbox" checked> A1–A2</label><label><input type="checkbox" checked> B1–B2</label><label><input type="checkbox" checked> C1</label>
+          </aside>
+          <main>
+            <div class="kpis"><div class="kpi"><b>110</b><span>пар</span></div><div class="kpi"><b>6</b><span>текстов</span></div><div class="kpi"><b>160</b><span>артиклей</span></div><div class="kpi"><b>348</b><span>сущ. RU</span></div></div>
+            <div class="top"><input value="книг" aria-label="Запрос"></div>
+            <div class="card"><div class="h"><span>example-011</span><span>1–2–1 · 0.81</span></div>
+              <div class="ln"><span class="tag" style="background:var(--en)">EN</span><span>One of the <mark class="hl-en">books</mark> was very thick; the other two were thin.</span></div>
+              <div class="ln"><span class="tag" style="background:var(--zh)">ZH</span><span class="zh" lang="zh">其中一本<mark class="hl-zh">书</mark>很厚；另外两本很薄。</span></div>
+              <div class="ln"><span class="tag" style="background:var(--ru)">RU</span><span>Одна из <mark class="q">книг</mark> была очень толстой, а две другие — тонкими.</span></div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="decision" aria-labelledby="dec">
+    <h2 id="dec">Выбор: вариант B</h2>
+    <table>
+      <thead><tr><th>Критерий</th><th>A · Сетка</th><th>B · Издание</th><th>C · Рабочее пространство</th></tr></thead>
+      <tbody>
+        <tr><td>«Академический минимализм, не админка»</td><td>да, но холодно</td><td><b>да</b></td><td>нет — типичная панель</td></tr>
+        <tr><td>Читаемость параллельного текста</td><td>средняя (гротеск, плотно)</td><td><b>высокая</b>: антиква, интерлиньяж 1,6/1,85</td><td>средняя</td></tr>
+        <tr><td>Иероглифы</td><td>одна гарнитура на всё</td><td><b>Noto Sans SC, отдельный интерлиньяж</b></td><td>Noto Sans SC</td></tr>
+        <tr><td>Цвет языка как система</td><td>только подсветка</td><td><b>метка колонки + подсветка + бейджи + графики</b></td><td>плашки-ярлыки</td></tr>
+        <tr><td>Телефон</td><td>колонки → стопка</td><td><b>карточка с тремя строками EN/ZH/RU</b></td><td>панель фильтров приходится прятать</td></tr>
+      </tbody>
+    </table>
+    <p>Вариант B ближе всего к задаче: корпус — это текст, и оформление двуязычного издания делает сравнение предложений естественным. Цвет несёт смысл, а не украшает. Метка языка одинакова в колонках, бейджах, упражнениях и на графиках статистики. Из варианта A взяты крупные цифры на главной, из C — фильтры-«пилюли» и карточки для телефона.</p>
+    <div class="palette">
+      <div class="sw"><i style="background:var(--en)"></i><span><b>EN</b> · #1F5FAD / тёмная #8DB6F2</span></div>
+      <div class="sw"><i style="background:var(--zh)"></i><span><b>ZH</b> · #B5421F / тёмная #F19A79</span></div>
+      <div class="sw"><i style="background:var(--ru)"></i><span><b>RU</b> · #16795A / тёмная #6FCFA6</span></div>
+      <div class="sw"><i style="background:var(--paper)"></i><span>Фон · #FBFAF7 / #15171A</span></div>
+    </div>
+    <p style="color:var(--muted); font-size:14px">Контраст акцентов по отношению к фону и подложкам — не ниже 4,5:1 в обеих темах (WCAG AA для обычного текста). Тройка «синий — киноварь — сине-зелёный» различима при дейтеранопии и протанопии (близка к палитре Окабе–Ито), а цвет всегда дублируется подписью языка.</p>
+  </section>
+</div>
+<script>
+  const tabs = document.querySelectorAll('[role="tab"]');
+  tabs.forEach((tab) => tab.addEventListener('click', () => {
+    tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+    document.querySelectorAll('.variant').forEach((v) => v.classList.toggle('active', v.id === 'v' + tab.dataset.v));
+  }));
+  document.getElementById('theme').addEventListener('click', () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+  });
+</script>
+</body>
+</html>
