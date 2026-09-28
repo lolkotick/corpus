@@ -1,0 +1,695 @@
+{
+ "format": "corpus-gold",
+ "version": 1,
+ "synthetic": true,
+ "_comment": "СИНТЕТИЧЕСКИЕ ДАННЫЕ ДЛЯ ТЕСТОВ. Предложения, разметка и вердикты придуманы для проверки кода pipeline/evaluate.py и не являются эталонной разметкой корпуса.",
+ "annotator": "тест (синтетические данные)",
+ "created_at": "2026-01-02T00:00:00Z",
+ "updated_at": "2026-01-02T00:00:00Z",
+ "corpus": {
+  "generated_at": "2026-01-01T00:00:00+00:00",
+  "alignment_method": "gale_church"
+ },
+ "sample": {
+  "seed": 1,
+  "size": 6,
+  "strategy": "proportional",
+  "pair_ids": [
+   "syn-001",
+   "syn-002",
+   "syn-003",
+   "syn2-001",
+   "syn-005",
+   "syn-099"
+  ]
+ },
+ "pairs": [
+  {
+   "id": "syn-001",
+   "text_id": "syn",
+   "reviewed_at": "2026-01-02T00:00:00Z",
+   "text": {
+    "en": "I bought a book.",
+    "zh": "我买了一本书。",
+    "ru": "Я купил книгу."
+   },
+   "sentences": {
+    "en": [
+     0
+    ],
+    "zh": [
+     0
+    ],
+    "ru": [
+     0
+    ]
+   },
+   "alignment": {
+    "zh": {
+     "verdict": "correct",
+     "links": []
+    },
+    "ru": {
+     "verdict": "correct",
+     "links": []
+    }
+   },
+   "phenomena": {
+    "en": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "en1",
+       "auto": {
+        "kind": "article",
+        "start": 9,
+        "end": 10,
+        "text": "a",
+        "value": "a",
+        "head": {
+         "start": 11,
+         "end": 15,
+         "text": "book"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "zh": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "zh1",
+       "auto": {
+        "kind": "classifier",
+        "start": 4,
+        "end": 5,
+        "text": "本",
+        "value": "本",
+        "det": {
+         "start": 3,
+         "end": 4,
+         "text": "一"
+        },
+        "head": {
+         "start": 5,
+         "end": 6,
+         "text": "书"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "ru": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "ru1",
+       "auto": {
+        "kind": "case",
+        "start": 8,
+        "end": 13,
+        "text": "книгу",
+        "lemma": "книга",
+        "case": "accs",
+        "number": "sing"
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    }
+   },
+   "comment": ""
+  },
+  {
+   "id": "syn-002",
+   "text_id": "syn",
+   "reviewed_at": "2026-01-02T00:00:00Z",
+   "text": {
+    "en": "The book is new.",
+    "zh": "书是新的。他有一只黑猫。",
+    "ru": "Книга новая."
+   },
+   "sentences": {
+    "en": [
+     1
+    ],
+    "zh": [
+     1,
+     2
+    ],
+    "ru": [
+     1
+    ]
+   },
+   "alignment": {
+    "zh": {
+     "verdict": "corrected",
+     "links": [
+      [
+       1,
+       1
+      ]
+     ]
+    },
+    "ru": {
+     "verdict": "correct",
+     "links": []
+    }
+   },
+   "phenomena": {
+    "en": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "en1",
+       "auto": {
+        "kind": "article",
+        "start": 0,
+        "end": 3,
+        "text": "The",
+        "value": "the",
+        "head": {
+         "start": 4,
+         "end": 8,
+         "text": "book"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "zh": {
+     "mode": "itemized",
+     "items": [
+      {
+       "id": "zh1",
+       "auto": {
+        "kind": "classifier",
+        "start": 8,
+        "end": 9,
+        "text": "只",
+        "value": "只",
+        "det": {
+         "start": 7,
+         "end": 8,
+         "text": "一"
+        },
+        "head": {
+         "start": 9,
+         "end": 11,
+         "text": "黑猫"
+        }
+       },
+       "verdict": "wrong",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "ru": {
+     "mode": "itemized",
+     "items": [
+      {
+       "id": "ru1",
+       "auto": {
+        "kind": "case",
+        "start": 0,
+        "end": 5,
+        "text": "Книга",
+        "lemma": "книга",
+        "case": "nomn",
+        "number": "sing"
+       },
+       "verdict": "corrected",
+       "correction": {
+        "case": "gent",
+        "lemma": "книга"
+       }
+      }
+     ],
+     "missed": []
+    }
+   },
+   "comment": ""
+  },
+  {
+   "id": "syn-003",
+   "text_id": "syn",
+   "reviewed_at": "2026-01-02T00:00:00Z",
+   "text": {
+    "en": "He has a black cat. It sleeps on a chair.",
+    "zh": "它睡在一张椅子上。",
+    "ru": "У него есть чёрная кошка. Она спит на стуле."
+   },
+   "sentences": {
+    "en": [
+     2,
+     3
+    ],
+    "zh": [
+     3
+    ],
+    "ru": [
+     2,
+     3
+    ]
+   },
+   "alignment": {
+    "zh": {
+     "verdict": "corrected",
+     "links": [
+      [
+       2,
+       2
+      ],
+      [
+       3,
+       3
+      ]
+     ]
+    },
+    "ru": {
+     "verdict": "corrected",
+     "links": [
+      [
+       2,
+       2
+      ],
+      [
+       3,
+       3
+      ]
+     ]
+    }
+   },
+   "phenomena": {
+    "en": {
+     "mode": "itemized",
+     "items": [
+      {
+       "id": "en1",
+       "auto": {
+        "kind": "article",
+        "start": 4,
+        "end": 5,
+        "text": "a",
+        "value": "a",
+        "head": {
+         "start": 9,
+         "end": 14,
+         "text": "black"
+        }
+       },
+       "verdict": "corrected",
+       "correction": {
+        "head": "cat"
+       }
+      },
+      {
+       "id": "en2",
+       "auto": {
+        "kind": "article",
+        "start": 7,
+        "end": 8,
+        "text": "a",
+        "value": "a",
+        "head": {
+         "start": 35,
+         "end": 40,
+         "text": "chair"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "zh": {
+     "mode": "itemized",
+     "items": [],
+     "missed": [
+      {
+       "start": 4,
+       "end": 5,
+       "text": "张",
+       "head": "椅子"
+      }
+     ]
+    },
+    "ru": {
+     "mode": "itemized",
+     "items": [
+      {
+       "id": "ru1",
+       "auto": {
+        "kind": "case",
+        "start": 2,
+        "end": 6,
+        "text": "него",
+        "lemma": "он",
+        "case": "gent",
+        "number": "sing"
+       },
+       "verdict": "wrong",
+       "correction": null
+      },
+      {
+       "id": "ru2",
+       "auto": {
+        "kind": "case",
+        "start": 19,
+        "end": 24,
+        "text": "кошка",
+        "lemma": "кошка",
+        "case": "nomn",
+        "number": "sing"
+       },
+       "verdict": "correct",
+       "correction": null
+      },
+      {
+       "id": "ru3",
+       "auto": {
+        "kind": "case",
+        "start": 38,
+        "end": 43,
+        "text": "стуле",
+        "lemma": "стул",
+        "case": "loct",
+        "number": "sing"
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    }
+   },
+   "comment": ""
+  },
+  {
+   "id": "syn2-001",
+   "text_id": "syn2",
+   "reviewed_at": "2026-01-02T00:00:00Z",
+   "text": {
+    "en": "We saw the sea.",
+    "zh": "我们看到了大海。",
+    "ru": "Мы увидели море."
+   },
+   "sentences": {
+    "en": [
+     0
+    ],
+    "zh": [
+     0
+    ],
+    "ru": [
+     0
+    ]
+   },
+   "alignment": {
+    "zh": {
+     "verdict": "correct",
+     "links": []
+    },
+    "ru": {
+     "verdict": "wrong",
+     "links": []
+    }
+   },
+   "phenomena": {
+    "en": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "en1",
+       "auto": {
+        "kind": "article",
+        "start": 7,
+        "end": 10,
+        "text": "the",
+        "value": "the",
+        "head": {
+         "start": 11,
+         "end": 14,
+         "text": "sea"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "zh": {
+     "mode": "all-correct",
+     "items": [],
+     "missed": []
+    },
+    "ru": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "ru1",
+       "auto": {
+        "kind": "case",
+        "start": 11,
+        "end": 15,
+        "text": "море",
+        "lemma": "море",
+        "case": "accs",
+        "number": "sing"
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    }
+   },
+   "comment": ""
+  },
+  {
+   "id": "syn-005",
+   "text_id": "syn",
+   "reviewed_at": "2026-01-02T00:00:00Z",
+   "text": {
+    "en": "I bought a book.",
+    "zh": "我买了一本书。",
+    "ru": "Я купил книгу."
+   },
+   "sentences": {
+    "en": [
+     0
+    ],
+    "zh": [
+     0
+    ],
+    "ru": [
+     0
+    ]
+   },
+   "alignment": {
+    "zh": {
+     "verdict": "correct",
+     "links": []
+    },
+    "ru": {
+     "verdict": null,
+     "links": []
+    }
+   },
+   "phenomena": {
+    "en": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "en1",
+       "auto": {
+        "kind": "article",
+        "start": 9,
+        "end": 10,
+        "text": "a",
+        "value": "a",
+        "head": {
+         "start": 11,
+         "end": 15,
+         "text": "book"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "zh": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "zh1",
+       "auto": {
+        "kind": "classifier",
+        "start": 4,
+        "end": 5,
+        "text": "本",
+        "value": "本",
+        "det": {
+         "start": 3,
+         "end": 4,
+         "text": "一"
+        },
+        "head": {
+         "start": 5,
+         "end": 6,
+         "text": "书"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "ru": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "ru1",
+       "auto": {
+        "kind": "case",
+        "start": 8,
+        "end": 13,
+        "text": "книгу",
+        "lemma": "книга",
+        "case": "accs",
+        "number": "sing"
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    }
+   },
+   "comment": ""
+  },
+  {
+   "id": "syn-099",
+   "text_id": "syn",
+   "reviewed_at": "2026-01-02T00:00:00Z",
+   "text": {
+    "en": "I bought a book.",
+    "zh": "我买了一本书。",
+    "ru": "Я купил книгу."
+   },
+   "sentences": {
+    "en": [
+     0
+    ],
+    "zh": [
+     0
+    ],
+    "ru": [
+     0
+    ]
+   },
+   "alignment": {
+    "zh": {
+     "verdict": "correct",
+     "links": []
+    },
+    "ru": {
+     "verdict": "correct",
+     "links": []
+    }
+   },
+   "phenomena": {
+    "en": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "en1",
+       "auto": {
+        "kind": "article",
+        "start": 9,
+        "end": 10,
+        "text": "a",
+        "value": "a",
+        "head": {
+         "start": 11,
+         "end": 15,
+         "text": "book"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "zh": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "zh1",
+       "auto": {
+        "kind": "classifier",
+        "start": 4,
+        "end": 5,
+        "text": "本",
+        "value": "本",
+        "det": {
+         "start": 3,
+         "end": 4,
+         "text": "一"
+        },
+        "head": {
+         "start": 5,
+         "end": 6,
+         "text": "书"
+        }
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    },
+    "ru": {
+     "mode": "all-correct",
+     "items": [
+      {
+       "id": "ru1",
+       "auto": {
+        "kind": "case",
+        "start": 8,
+        "end": 13,
+        "text": "книгу",
+        "lemma": "книга",
+        "case": "accs",
+        "number": "sing"
+       },
+       "verdict": "correct",
+       "correction": null
+      }
+     ],
+     "missed": []
+    }
+   },
+   "comment": ""
+  }
+ ]
+}

@@ -1,0 +1,430 @@
+{
+ "_comment": "СИНТЕТИЧЕСКИЕ ДАННЫЕ ДЛЯ ТЕСТОВ. Предложения, разметка и вердикты придуманы для проверки кода pipeline/evaluate.py и не являются эталонной разметкой корпуса.",
+ "synthetic": true,
+ "version": 2,
+ "generated_at": "2026-01-01T00:00:00+00:00",
+ "alignment_method": "gale_church",
+ "low_score_threshold": 0.35,
+ "annotation_methods": {},
+ "texts": [
+  {
+   "id": "syn",
+   "title": "syn",
+   "level": "A1",
+   "sentences": {
+    "en": [
+     "I bought a book.",
+     "The book is new.",
+     "He has a black cat.",
+     "It sleeps on a chair."
+    ],
+    "zh": [
+     "我买了一本书。",
+     "书是新的。",
+     "他有一只黑猫。",
+     "它睡在一张椅子上。"
+    ],
+    "ru": [
+     "Я купил книгу.",
+     "Книга новая.",
+     "У него есть чёрная кошка.",
+     "Она спит на стуле."
+    ]
+   }
+  },
+  {
+   "id": "syn2",
+   "title": "syn2",
+   "level": "A1",
+   "sentences": {
+    "en": [
+     "We saw the sea."
+    ],
+    "zh": [
+     "我们看到了大海。"
+    ],
+    "ru": [
+     "Мы увидели море."
+    ]
+   }
+  }
+ ],
+ "classifiers": [],
+ "pairs": [
+  {
+   "id": "syn-001",
+   "text_id": "syn",
+   "position": 1,
+   "en": "I bought a book.",
+   "zh": "我买了一本书。",
+   "ru": "Я купил книгу.",
+   "alignment_type": "1-1-1",
+   "alignment_score": 0.5,
+   "alignment": {
+    "method": "gale_church",
+    "en_zh": 0.5,
+    "en_ru": 0.5,
+    "low": false
+   },
+   "sentences": {
+    "en": [
+     0
+    ],
+    "zh": [
+     0
+    ],
+    "ru": [
+     0
+    ]
+   },
+   "annotations": {
+    "en": [
+     {
+      "id": "en1",
+      "kind": "article",
+      "start": 9,
+      "end": 10,
+      "text": "a",
+      "value": "a",
+      "definite": false,
+      "head": {
+       "start": 11,
+       "end": 15,
+       "text": "book",
+       "lemma": "book",
+       "pos": "NOUN",
+       "number": "sing"
+      },
+      "disputed": false
+     }
+    ],
+    "zh": [
+     {
+      "id": "zh1",
+      "kind": "classifier",
+      "start": 4,
+      "end": 5,
+      "text": "本",
+      "value": "本",
+      "pinyin": "",
+      "type": "именной",
+      "det": {
+       "start": 3,
+       "end": 4,
+       "text": "一"
+      },
+      "head": {
+       "start": 5,
+       "end": 6,
+       "text": "书"
+      },
+      "disputed": false
+     }
+    ],
+    "ru": [
+     {
+      "id": "ru1",
+      "kind": "case",
+      "start": 8,
+      "end": 13,
+      "text": "книгу",
+      "lemma": "книга",
+      "case": "accs",
+      "number": "sing",
+      "gender": null,
+      "animacy": null,
+      "confidence": 1.0,
+      "ambiguous": false,
+      "disputed": false
+     }
+    ]
+   },
+   "status": "auto",
+   "llm_note": null,
+   "comment": ""
+  },
+  {
+   "id": "syn-002",
+   "text_id": "syn",
+   "position": 2,
+   "en": "The book is new.",
+   "zh": "书是新的。他有一只黑猫。",
+   "ru": "Книга новая.",
+   "alignment_type": "1-2-1",
+   "alignment_score": 0.5,
+   "alignment": {
+    "method": "gale_church",
+    "en_zh": 0.5,
+    "en_ru": 0.5,
+    "low": false
+   },
+   "sentences": {
+    "en": [
+     1
+    ],
+    "zh": [
+     1,
+     2
+    ],
+    "ru": [
+     1
+    ]
+   },
+   "annotations": {
+    "en": [
+     {
+      "id": "en1",
+      "kind": "article",
+      "start": 0,
+      "end": 3,
+      "text": "The",
+      "value": "the",
+      "definite": true,
+      "head": {
+       "start": 4,
+       "end": 8,
+       "text": "book",
+       "lemma": "book",
+       "pos": "NOUN",
+       "number": "sing"
+      },
+      "disputed": false
+     }
+    ],
+    "zh": [
+     {
+      "id": "zh1",
+      "kind": "classifier",
+      "start": 8,
+      "end": 9,
+      "text": "只",
+      "value": "只",
+      "pinyin": "",
+      "type": "именной",
+      "det": {
+       "start": 7,
+       "end": 8,
+       "text": "一"
+      },
+      "head": {
+       "start": 9,
+       "end": 11,
+       "text": "黑猫"
+      },
+      "disputed": false
+     }
+    ],
+    "ru": [
+     {
+      "id": "ru1",
+      "kind": "case",
+      "start": 0,
+      "end": 5,
+      "text": "Книга",
+      "lemma": "книга",
+      "case": "nomn",
+      "number": "sing",
+      "gender": null,
+      "animacy": null,
+      "confidence": 1.0,
+      "ambiguous": false,
+      "disputed": false
+     }
+    ]
+   },
+   "status": "auto",
+   "llm_note": null,
+   "comment": ""
+  },
+  {
+   "id": "syn-003",
+   "text_id": "syn",
+   "position": 3,
+   "en": "He has a black cat. It sleeps on a chair.",
+   "zh": "它睡在一张椅子上。",
+   "ru": "У него есть чёрная кошка. Она спит на стуле.",
+   "alignment_type": "2-1-2",
+   "alignment_score": 0.5,
+   "alignment": {
+    "method": "gale_church",
+    "en_zh": 0.5,
+    "en_ru": 0.5,
+    "low": false
+   },
+   "sentences": {
+    "en": [
+     2,
+     3
+    ],
+    "zh": [
+     3
+    ],
+    "ru": [
+     2,
+     3
+    ]
+   },
+   "annotations": {
+    "en": [
+     {
+      "id": "en1",
+      "kind": "article",
+      "start": 4,
+      "end": 5,
+      "text": "a",
+      "value": "a",
+      "definite": false,
+      "head": {
+       "start": 9,
+       "end": 14,
+       "text": "black",
+       "lemma": "black",
+       "pos": "NOUN",
+       "number": "sing"
+      },
+      "disputed": false
+     },
+     {
+      "id": "en2",
+      "kind": "article",
+      "start": 7,
+      "end": 8,
+      "text": "a",
+      "value": "a",
+      "definite": false,
+      "head": {
+       "start": 35,
+       "end": 40,
+       "text": "chair",
+       "lemma": "chair",
+       "pos": "NOUN",
+       "number": "sing"
+      },
+      "disputed": false
+     }
+    ],
+    "zh": [],
+    "ru": [
+     {
+      "id": "ru1",
+      "kind": "case",
+      "start": 2,
+      "end": 6,
+      "text": "него",
+      "lemma": "он",
+      "case": "gent",
+      "number": "sing",
+      "gender": null,
+      "animacy": null,
+      "confidence": 1.0,
+      "ambiguous": false,
+      "disputed": false
+     },
+     {
+      "id": "ru2",
+      "kind": "case",
+      "start": 19,
+      "end": 24,
+      "text": "кошка",
+      "lemma": "кошка",
+      "case": "nomn",
+      "number": "sing",
+      "gender": null,
+      "animacy": null,
+      "confidence": 1.0,
+      "ambiguous": false,
+      "disputed": false
+     },
+     {
+      "id": "ru3",
+      "kind": "case",
+      "start": 38,
+      "end": 43,
+      "text": "стуле",
+      "lemma": "стул",
+      "case": "loct",
+      "number": "sing",
+      "gender": null,
+      "animacy": null,
+      "confidence": 1.0,
+      "ambiguous": false,
+      "disputed": false
+     }
+    ]
+   },
+   "status": "auto",
+   "llm_note": null,
+   "comment": ""
+  },
+  {
+   "id": "syn2-001",
+   "text_id": "syn2",
+   "position": 1,
+   "en": "We saw the sea.",
+   "zh": "我们看到了大海。",
+   "ru": "Мы увидели море.",
+   "alignment_type": "1-1-1",
+   "alignment_score": 0.5,
+   "alignment": {
+    "method": "gale_church",
+    "en_zh": 0.5,
+    "en_ru": 0.5,
+    "low": false
+   },
+   "sentences": {
+    "en": [
+     0
+    ],
+    "zh": [
+     0
+    ],
+    "ru": [
+     0
+    ]
+   },
+   "annotations": {
+    "en": [
+     {
+      "id": "en1",
+      "kind": "article",
+      "start": 7,
+      "end": 10,
+      "text": "the",
+      "value": "the",
+      "definite": true,
+      "head": {
+       "start": 11,
+       "end": 14,
+       "text": "sea",
+       "lemma": "sea",
+       "pos": "NOUN",
+       "number": "sing"
+      },
+      "disputed": false
+     }
+    ],
+    "zh": [],
+    "ru": [
+     {
+      "id": "ru1",
+      "kind": "case",
+      "start": 11,
+      "end": 15,
+      "text": "море",
+      "lemma": "море",
+      "case": "accs",
+      "number": "sing",
+      "gender": null,
+      "animacy": null,
+      "confidence": 1.0,
+      "ambiguous": false,
+      "disputed": false
+     }
+    ]
+   },
+   "status": "auto",
+   "llm_note": null,
+   "comment": ""
+  }
+ ]
+}

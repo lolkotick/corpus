@@ -4,6 +4,7 @@
     python -m pipeline build --no-llm        # без запросов к LLM
     python -m pipeline import-csv FILE.csv   # импорт ручных правок и пересборка
     python -m pipeline check                 # проверить входные тексты без сборки
+    python -m pipeline evaluate              # оценка разметки по data/gold/gold.json
 """
 
 from __future__ import annotations
@@ -109,6 +110,19 @@ def cmd_check(args: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def cmd_evaluate(args: argparse.Namespace) -> int:
+    from pipeline.evaluate import run
+
+    config = load_config(Path(args.config) if args.config else None)
+    gold = Path(args.gold) if args.gold else config.path("gold")
+    out = Path(args.out) if args.out else config.path("reports")
+    corpus = Path(args.corpus) if args.corpus else config.path("output") / "corpus.json"
+    code, files = run(corpus, gold, out, config.root)
+    for path in files:
+        print(f"  → {path}")
+    return code
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m pipeline",
                                      description="Pipeline учебного корпуса EN/ZH/RU")
@@ -129,6 +143,12 @@ def main(argv: list[str] | None = None) -> int:
 
     p_check = sub.add_parser("check", help="проверить входные тексты")
     p_check.set_defaults(func=cmd_check)
+
+    p_eval = sub.add_parser("evaluate", help="оценить разметку по золотому стандарту")
+    p_eval.add_argument("--gold", help="файл эталона (по умолчанию data/gold/gold.json)")
+    p_eval.add_argument("--corpus", help="corpus.json (по умолчанию web/public/data/corpus.json)")
+    p_eval.add_argument("--out", help="папка отчётов (по умолчанию reports)")
+    p_eval.set_defaults(func=cmd_evaluate)
 
     args = parser.parse_args(argv)
     _setup_logging(args.verbose)

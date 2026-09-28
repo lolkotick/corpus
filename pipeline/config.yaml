@@ -7,6 +7,8 @@ paths:
   output: web/public/data      # corpus.json, corpus.csv, stats.json для сайта
   logs: logs                   # журнал сборки build_report.md
   llm_cache: data/llm_cache    # сохранённые ответы LLM (хранятся в git: сборка без ключа их применяет)
+  gold: data/gold/gold.json    # золотой стандарт — создаёт только эксперт в режиме «Проверка»
+  reports: reports             # отчёты для курсовой: evaluation.md, CSV, PNG
 
 segmentation:
   # Знаки конца предложения для китайского текста.

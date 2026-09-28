@@ -1,0 +1,272 @@
+{
+ "_comment": "СИНТЕТИЧЕСКИЕ ДАННЫЕ для теста: одинаковая выборка в web/src/lib/gold.ts и pipeline/gold.py. Ожидаемые списки получены из pipeline/gold.py; тест на TypeScript сверяет с ними свою реализацию.",
+ "synthetic": true,
+ "pairs": [
+  {
+   "id": "alpha-001",
+   "text_id": "alpha"
+  },
+  {
+   "id": "alpha-002",
+   "text_id": "alpha"
+  },
+  {
+   "id": "alpha-003",
+   "text_id": "alpha"
+  },
+  {
+   "id": "alpha-004",
+   "text_id": "alpha"
+  },
+  {
+   "id": "alpha-005",
+   "text_id": "alpha"
+  },
+  {
+   "id": "alpha-006",
+   "text_id": "alpha"
+  },
+  {
+   "id": "alpha-007",
+   "text_id": "alpha"
+  },
+  {
+   "id": "beta-001",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-002",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-003",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-004",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-005",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-006",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-007",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-008",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-009",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-010",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-011",
+   "text_id": "beta"
+  },
+  {
+   "id": "beta-012",
+   "text_id": "beta"
+  },
+  {
+   "id": "gamma-001",
+   "text_id": "gamma"
+  },
+  {
+   "id": "gamma-002",
+   "text_id": "gamma"
+  },
+  {
+   "id": "gamma-003",
+   "text_id": "gamma"
+  },
+  {
+   "id": "delta-001",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-002",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-003",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-004",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-005",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-006",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-007",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-008",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-009",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-010",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-011",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-012",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-013",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-014",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-015",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-016",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-017",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-018",
+   "text_id": "delta"
+  },
+  {
+   "id": "delta-019",
+   "text_id": "delta"
+  }
+ ],
+ "cases": [
+  {
+   "seed": 2026,
+   "size": 10,
+   "expected": [
+    "beta-008",
+    "delta-019",
+    "gamma-002",
+    "alpha-006",
+    "delta-016",
+    "beta-007",
+    "delta-010",
+    "delta-012",
+    "beta-011",
+    "alpha-005"
+   ]
+  },
+  {
+   "seed": 1,
+   "size": 5,
+   "expected": [
+    "delta-015",
+    "beta-006",
+    "gamma-002",
+    "delta-014",
+    "alpha-002"
+   ]
+  },
+  {
+   "seed": 4294967295,
+   "size": 41,
+   "expected": [
+    "beta-009",
+    "delta-007",
+    "beta-001",
+    "alpha-001",
+    "delta-015",
+    "delta-012",
+    "beta-012",
+    "delta-009",
+    "alpha-006",
+    "delta-011",
+    "beta-004",
+    "gamma-001",
+    "delta-010",
+    "beta-007",
+    "delta-018",
+    "alpha-003",
+    "delta-013",
+    "beta-005",
+    "delta-005",
+    "beta-003",
+    "delta-003",
+    "alpha-005",
+    "delta-006",
+    "beta-011",
+    "delta-001",
+    "gamma-003",
+    "alpha-004",
+    "delta-014",
+    "beta-008",
+    "delta-004",
+    "beta-010",
+    "delta-008",
+    "alpha-002",
+    "delta-017",
+    "beta-002",
+    "delta-002",
+    "beta-006",
+    "delta-019",
+    "alpha-007",
+    "gamma-002",
+    "delta-016"
+   ]
+  },
+  {
+   "seed": 123456789,
+   "size": 20,
+   "expected": [
+    "delta-004",
+    "beta-005",
+    "delta-006",
+    "alpha-003",
+    "delta-014",
+    "gamma-002",
+    "beta-011",
+    "delta-016",
+    "delta-001",
+    "beta-006",
+    "alpha-007",
+    "delta-007",
+    "beta-007",
+    "delta-002",
+    "delta-017",
+    "alpha-005",
+    "beta-003",
+    "delta-012",
+    "gamma-001",
+    "beta-010"
+   ]
+  }
+ ]
+}
