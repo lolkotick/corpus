@@ -1,0 +1,16 @@
+{
+  "title": "United Nations Parallel Corpus v1.0 (excerpt)",
+  "title_ru": "Параллельный корпус ООН v1.0 (фрагмент)",
+  "title_zh": "联合国平行语料库 v1.0（节选）",
+  "source": "United Nations Parallel Corpus v1.0 — официальные документы ООН (https://www.un.org/dgacm/en/content/uncorpus)",
+  "source_url": "https://www.un.org/dgacm/en/content/uncorpus",
+  "license": "документы ООН, находящиеся в общественном достоянии; условия использования корпуса — на официальной странице",
+  "license_url": "https://www.un.org/dgacm/en/content/uncorpus",
+  "attribution": "Источник — Организация Объединённых Наций; ссылка на корпус: Ziemski, M., Junczys-Dowmunt, M., Pouliquen, B. The United Nations Parallel Corpus v1.0 // Proceedings of LREC 2016. Portorož, 2016. P. 3530–3534.",
+  "register": "официальный",
+  "topic": "Официальные документы ООН",
+  "level": "B1",
+  "level_method": "медиана оценок сложности троек (pipeline/difficulty.py)",
+  "author": "",
+  "units": "2000"
+}
