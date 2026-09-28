@@ -8,6 +8,8 @@
     python -m pipeline compare-aligners      # сравнение методов выравнивания
     python -m pipeline errors                # анализ ошибок по эталону
     python -m pipeline approbation [CSV ...]  # результаты предтеста и посттеста
+    python -m pipeline corpus-report         # описание корпуса (таблицы и графики)
+    python -m pipeline reports               # все отчёты для курсовой + копии в Word
 """
 
 from __future__ import annotations
@@ -164,6 +166,25 @@ def cmd_approbation(args: argparse.Namespace) -> int:
     return code
 
 
+def cmd_corpus_report(args: argparse.Namespace) -> int:
+    from pipeline.corpus_report import run
+
+    config = load_config(Path(args.config) if args.config else None)
+    out = Path(args.out) if args.out else config.path("reports")
+    code, files = run(config.path("output"), out, config.root)
+    for path in files:
+        print(f"  → {path}")
+    return code
+
+
+def cmd_reports(args: argparse.Namespace) -> int:
+    from pipeline.reports import build_all
+
+    config = load_config(Path(args.config) if args.config else None)
+    steps = build_all(config, use_llm=not args.no_llm, docx=not args.no_docx)
+    return 1 if any(s.status == "ошибка" for s in steps) else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m pipeline",
                                      description="Pipeline учебного корпуса EN/ZH/RU")
@@ -208,6 +229,16 @@ def main(argv: list[str] | None = None) -> int:
                         help="CSV-файлы или папки (по умолчанию data/approbation)")
     p_appr.add_argument("--out", help="папка отчётов (по умолчанию reports)")
     p_appr.set_defaults(func=cmd_approbation)
+
+    p_corpus = sub.add_parser("corpus-report", help="описание корпуса для курсовой")
+    p_corpus.add_argument("--out", help="папка отчётов (по умолчанию reports)")
+    p_corpus.set_defaults(func=cmd_corpus_report)
+
+    p_reports = sub.add_parser("reports", help="все отчёты для курсовой одной командой")
+    p_reports.add_argument("--no-llm", action="store_true",
+                           help="не запускать LLM-выравнивание при сравнении методов")
+    p_reports.add_argument("--no-docx", action="store_true", help="не делать копии в Word")
+    p_reports.set_defaults(func=cmd_reports)
 
     args = parser.parse_args(argv)
     _setup_logging(args.verbose)
