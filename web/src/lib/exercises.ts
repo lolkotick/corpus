@@ -15,7 +15,10 @@ import type {
   Phenomenon,
 } from '../data/types';
 import { CASES, LANG_INFO, LEVELS, NUMBERS } from './labels';
+import { mulberry32, shuffle } from './random';
 import { codePointConverter, normalizeWord } from './text';
+
+export { mulberry32, newSeed, shuffle } from './random';
 
 export type ExerciseKind = Phenomenon | 'mixed';
 
@@ -51,37 +54,6 @@ export interface ExerciseItem {
   explanation: string;
   /** Короткая подпись задания для итогов и ключей. */
   label: string;
-}
-
-/* ─── Детерминированный генератор случайных чисел (один набор = один seed) ── */
-
-export function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-export function shuffle<T>(items: readonly T[], random: () => number): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(random() * (i + 1));
-    const a = result[i];
-    const b = result[j];
-    if (a !== undefined && b !== undefined) {
-      result[i] = b;
-      result[j] = a;
-    }
-  }
-  return result;
-}
-
-export function newSeed(): number {
-  return Math.floor(Math.random() * 2 ** 31);
 }
 
 /* ─── Вспомогательные функции ───────────────────────────────────────────── */

@@ -11,6 +11,7 @@ export const PAIR_BOOK: Pair = {
   alignment_type: '1-1-1',
   alignment_score: 0.8,
   alignment: { method: 'gale_church', en_zh: 0.8, en_ru: 0.9, low: false },
+  sentences: { en: [0], zh: [0], ru: [0] },
   annotations: {
     en: [
       {
@@ -104,6 +105,7 @@ export const PAIR_TEA: Pair = {
   ru: 'Она заказала чай.',
   alignment_score: 0.2,
   alignment: { method: 'gale_church', en_zh: 0.2, en_ru: 0.9, low: true },
+  sentences: { en: [1], zh: [1], ru: [1] },
   annotations: {
     en: [
       {
@@ -142,7 +144,7 @@ export const PAIR_TEA: Pair = {
 };
 
 export const CORPUS: Corpus = {
-  version: 1,
+  version: 2,
   generated_at: '2026-09-28T00:00:00+00:00',
   alignment_method: 'gale_church',
   low_score_threshold: 0.35,
@@ -158,6 +160,11 @@ export const CORPUS: Corpus = {
       level: 'A2',
       author: '',
       pairs: 2,
+      sentences: {
+        en: [PAIR_BOOK.en, PAIR_TEA.en],
+        zh: [PAIR_BOOK.zh, PAIR_TEA.zh],
+        ru: [PAIR_BOOK.ru, PAIR_TEA.ru],
+      },
     },
   ],
   classifiers: [{ value: '本', pinyin: 'běn', type: 'именной', gloss: 'книги', examples: ['书'] }],

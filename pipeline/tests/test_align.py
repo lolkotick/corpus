@@ -98,6 +98,9 @@ def test_merge_on_pivot_combines_pairwise_alignments():
     assert segments[0].en == ["E0", "E1"] and segments[0].ru == ["R0", "R1"]
     assert segments[0].score == 0.6  # минимум по обоим попарным выравниваниям
     assert segments[1].zh == ["Z1"] and segments[1].ru == ["R2", "R3"]
+    assert segments[1].sentence_ids("ru") == [2, 3]
+    shifted = segments[1].shifted({"en": 10, "zh": 20, "ru": 30})
+    assert shifted.sentence_ids("en") == [12] and shifted.sentence_ids("ru") == [32, 33]
 
 
 def test_merge_attaches_insertions_to_previous_group():

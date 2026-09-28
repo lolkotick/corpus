@@ -100,6 +100,8 @@ export interface Pair {
   alignment_type: string;
   alignment_score: number;
   alignment: { method: string; en_zh: number; en_ru: number; low: boolean };
+  /** Номера предложений текста (с нуля), из которых состоит пара. */
+  sentences: Record<Lang, number[]>;
   annotations: Annotations;
   links?: Link[];
   status: Status;
@@ -117,6 +119,8 @@ export interface TextMeta {
   level: Level;
   author: string;
   pairs: number;
+  /** Предложения текста после сегментации (для исправления выравнивания). */
+  sentences: Record<Lang, string[]>;
 }
 
 export interface ClassifierInfo {

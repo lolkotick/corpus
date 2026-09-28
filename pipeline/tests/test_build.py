@@ -26,6 +26,17 @@ def test_full_build_on_example(project):
              for lang in ("en", "zh", "ru")}
     assert kinds == {"en": {"article"}, "zh": {"classifier"}, "ru": {"case"}}
 
+    # Номера предложений покрывают каждый текст без пропусков и собираются в текст пары.
+    from pipeline.segment import join_sentences
+
+    sentences = corpus["texts"][0]["sentences"]
+    for lang in ("en", "zh", "ru"):
+        ids = [i for p in corpus["pairs"] for i in p["sentences"][lang]]
+        assert ids == list(range(len(sentences[lang])))
+        for p in corpus["pairs"]:
+            assert join_sentences([sentences[lang][i] for i in p["sentences"][lang]],
+                                  lang) == p[lang]
+
     # Разметка ссылается на неизменённый текст.
     for p in corpus["pairs"]:
         for lang in ("en", "zh", "ru"):

@@ -68,9 +68,14 @@ def _align_text(aligner: Any, raw: RawText, sentences: dict[str, list[list[str]]
     counts = {lang: len(sentences[lang]) for lang in LANGS}
     if use_paragraphs and len(set(counts.values())) == 1:
         segments: list[AlignedSegment] = []
+        offsets = dict.fromkeys(LANGS, 0)
         for p in range(counts["en"]):
-            segments += align_three(aligner, sentences["en"][p], sentences["zh"][p],
-                                    sentences["ru"][p])
+            segments += [
+                seg.shifted(offsets)
+                for seg in align_three(aligner, sentences["en"][p], sentences["zh"][p],
+                                       sentences["ru"][p])
+            ]
+            offsets = {lang: offsets[lang] + len(sentences[lang][p]) for lang in LANGS}
         return segments, f"по абзацам ({counts['en']})"
     if use_paragraphs:
         warnings.append(
@@ -104,6 +109,10 @@ def run_build(config: Config, use_llm: bool = True) -> BuildResult:
             for t in raw_texts
         }
         totals = {lang: sum(len(p) for s in sentences.values() for p in s[lang]) for lang in LANGS}
+        # Список предложений каждого текста — для исправления выравнивания в режиме «Проверка».
+        for meta in result.texts:
+            meta["sentences"] = {lang: [s for para in sentences[meta["id"]][lang] for s in para]
+                                 for lang in LANGS}
         st.detail = ", ".join(f"{lang.upper()} {n}" for lang, n in totals.items())
 
     # 3. Выравнивание
@@ -135,6 +144,9 @@ def run_build(config: Config, use_llm: bool = True) -> BuildResult:
                     "alignment_score": seg.score,
                     "alignment": {"method": seg.method, "en_zh": seg.en_zh, "en_ru": seg.en_ru,
                                   "low": seg.score < threshold},
+                    # Номера предложений текста (с нуля): по ним режим «Проверка»
+                    # и evaluate.py сравнивают выравнивание с эталоном.
+                    "sentences": {lang: seg.sentence_ids(lang) for lang in LANGS},
                     "annotations": {"en": [], "zh": [], "ru": []},
                     "status": "auto",
                     "llm_note": None,
