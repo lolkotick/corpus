@@ -1,6 +1,6 @@
 # Сравнение методов выравнивания
 
-- Тексты: 8 (my_family, tatoeba, example, letter_xian, market, tea_history, child_language, un_corpus); предложений EN 2641, ZH 2665, RU 2803.
+- Тексты: 8 (my_family, tatoeba, example, letter_xian, market, tea_history, child_language, un_corpus); предложений EN 2637, ZH 2667, RU 2685.
 - Условия одинаковы для всех методов: та же сегментация, выравнивание по абзацам, EN — опорный язык, EN–ZH и EN–RU выравниваются отдельно.
 - Сравниваются группы предложений в тройках EN–ZH–RU — так, как они попали бы в корпус: граница между группами остаётся, только если её поставили оба попарных выравнивания. Поэтому объединение предложений в одной паре языков отражается и в группах другой.
 
@@ -10,7 +10,7 @@
 |---|---|---:|---:|---|
 | bertalign (LaBSE) | нет | — | — | пакет не установлен (bertalign) |
 | LaBSE (алгоритм Bertalign) | нет | — | — | пакет не установлен (sentence_transformers) |
-| Гейл–Чёрч | да | 0,00 | 0,17 |  |
+| Гейл–Чёрч | да | 0,00 | 0,20 |  |
 | По порядку (базовый) | да | 0,00 | 0,04 |  |
 
 Время зависит от компьютера; для нейросетевых методов «загрузка» включает чтение модели LaBSE. Время LLM включает сетевые запросы (из кэша — почти мгновенно).
@@ -30,29 +30,29 @@
 
 | Пара методов | EN–ZH | EN–RU |
 |---|---:|---:|
-| Гейл–Чёрч — По порядку (базовый) | 99,2 % (2620/2641) | 99,5 % (2627/2641) |
+| Гейл–Чёрч — По порядку (базовый) | 99,0 % (2610/2637) | 99,2 % (2617/2637) |
 
 ## Показательные расхождения
 
 Отобрано 10: разные тексты и языковые пары, более крупные участки — раньше.
 
-### 1. un_corpus, EN–RU, EN 1183, 1184, 1185, 1186
+### 1. un_corpus, EN–RU, EN 1238, 1239, 1240, 1241
 
 - **Гейл–Чёрч**:
-  - EN 1183 ↔ RU ∅: «This would allow» ↔ «∅»
-  - EN 1184 ↔ RU ∅: «(a) the exchange of database information in a structured way,» ↔ «∅»
-  - EN 1185–1186 ↔ RU 1292: «(b) independent use of hardware, software and communications media, and (c) easy downloading into the recipients own database and the automation of much of this process.» ↔ «Это должно было позволить a) осуществлять обмен структурированной информацией, содержащейся в базах данных, b) обеспечивать независимое использование аппаратных средств, программного обеспечения и средств связи и c) упр…»
+  - EN 1238 ↔ RU ∅: «He claims to be a victim of violations by Togo of articles 1, paragraphs 1 and 2; 2, paragraph 3» ↔ «∅»
+  - EN 1239 ↔ RU ∅: «(a),» ↔ «∅»
+  - EN 1240–1241 ↔ RU 1247: «(b) and (c); 7; 9, paragraphs 1, 2, 3 and 5; 10, paragraph 1; 12, paragraph 4; and 17, paragraphs 1 and 2, of the International Covenant on Civil and Political Rights.» ↔ «Он заявляет, что является жертвой нарушения Того пунктов 1 и 2 статьи 1; пунктов 3a, b и c статьи 2; статьи 7; пунктов 1, 2, 3 и 5 статьи 9; пункта 1 статьи 10; пункта 4 статьи 12; пунктов 1 и 2 статьи 17 Международного…»
 - **По порядку (базовый)**:
-  - EN 1183–1186 ↔ RU 1292: «This would allow (a) the exchange of database information in a structured way, (b) independent use of hardware, software and communications media, and (c) easy downloading into the recipients own database and the automa…» ↔ «Это должно было позволить a) осуществлять обмен структурированной информацией, содержащейся в базах данных, b) обеспечивать независимое использование аппаратных средств, программного обеспечения и средств связи и c) упр…»
+  - EN 1238–1241 ↔ RU 1247: «He claims to be a victim of violations by Togo of articles 1, paragraphs 1 and 2; 2, paragraph 3 (a), (b) and (c); 7; 9, paragraphs 1, 2, 3 and 5; 10, paragraph 1; 12, paragraph 4; and 17, paragraphs 1 and 2, of the Int…» ↔ «Он заявляет, что является жертвой нарушения Того пунктов 1 и 2 статьи 1; пунктов 3a, b и c статьи 2; статьи 7; пунктов 1, 2, 3 и 5 статьи 9; пункта 1 статьи 10; пункта 4 статьи 12; пунктов 1 и 2 статьи 17 Международного…»
 
-### 2. un_corpus, EN–ZH, EN 1183, 1184, 1185, 1186
+### 2. un_corpus, EN–ZH, EN 1238, 1239, 1240, 1241
 
 - **Гейл–Чёрч**:
-  - EN 1183 ↔ ZH ∅: «This would allow» ↔ «∅»
-  - EN 1184 ↔ ZH ∅: «(a) the exchange of database information in a structured way,» ↔ «∅»
-  - EN 1185–1186 ↔ ZH 1201: «(b) independent use of hardware, software and communications media, and (c) easy downloading into the recipients own database and the automation of much of this process.» ↔ «这样做就能够(a) 以结构化方式交换数据库信息，(b) 独立使用硬件、软件和通信媒体，(c) 很容易将信息下装到接受者自己的数据库中，并使这一过程大部分实现自动化。»
+  - EN 1238 ↔ ZH ∅: «He claims to be a victim of violations by Togo of articles 1, paragraphs 1 and 2; 2, paragraph 3» ↔ «∅»
+  - EN 1239 ↔ ZH ∅: «(a),» ↔ «∅»
+  - EN 1240–1241 ↔ ZH 1255: «(b) and (c); 7; 9, paragraphs 1, 2, 3 and 5; 10, paragraph 1; 12, paragraph 4; and 17, paragraphs 1 and 2, of the International Covenant on Civil and Political Rights.» ↔ «他称他是多哥侵犯《公民权利和政治权利国际盟约》第1条第1款和第2款、第2条第3款(a)项、(b)项和(c)项、第7条、第9条第1、第2、第3和第5款、第10条第1款、第12条第4款、第17条第1和第2款行为的受害者。»
 - **По порядку (базовый)**:
-  - EN 1183–1186 ↔ ZH 1201: «This would allow (a) the exchange of database information in a structured way, (b) independent use of hardware, software and communications media, and (c) easy downloading into the recipients own database and the automa…» ↔ «这样做就能够(a) 以结构化方式交换数据库信息，(b) 独立使用硬件、软件和通信媒体，(c) 很容易将信息下装到接受者自己的数据库中，并使这一过程大部分实现自动化。»
+  - EN 1238–1241 ↔ ZH 1255: «He claims to be a victim of violations by Togo of articles 1, paragraphs 1 and 2; 2, paragraph 3 (a), (b) and (c); 7; 9, paragraphs 1, 2, 3 and 5; 10, paragraph 1; 12, paragraph 4; and 17, paragraphs 1 and 2, of the Int…» ↔ «他称他是多哥侵犯《公民权利和政治权利国际盟约》第1条第1款和第2款、第2条第3款(a)项、(b)项和(c)项、第7条、第9条第1、第2、第3和第5款、第10条第1款、第12条第4款、第17条第1和第2款行为的受害者。»
 
 ### 3. tatoeba, EN–RU, EN 95, 96, 97
 
@@ -100,21 +100,21 @@
 - **По порядку (базовый)**:
   - EN 2 ↔ ZH 2: «I am writing to you from Xi'an, an ancient city in the north-west of China.» ↔ «我在西安给你写信。»
 
-### 9. un_corpus, EN–RU, EN 1049, 1050, 1051
+### 9. un_corpus, EN–RU, EN 129, 130, 131
 
 - **Гейл–Чёрч**:
-  - EN 1049–1050 ↔ RU 1133–1136: «Source: Adapted from J. D. Hawkins, M. W. Arthur and R. F. Catalano, &quot; Preventing substance abuse &quot; , Crime and Justice: A Review of Research, vol. 19, M. Tonry and D. Farrington, eds.» ↔ «Источник: На основе J.D. Hawkins, M.W. Arthur and R.F. Catalano, &quot; Preventing substance abuse &quot; , Crime and Justice: A Review of Research, vol. 19, M. Tonry and D. Farrington, eds.»
-  - EN 1051 ↔ RU 1137–1138: «(Chicago, University of Chicago Press, 1995), table 1, pp. 371-379.» ↔ «(Chicago, University of Chicago Press, 1995), table 1, pp. 371-379.»
+  - EN 129 ↔ RU ∅: «The research activities are largely concentrated in» ↔ «∅»
+  - EN 130–131 ↔ RU 132: «(a) the Institute for Space Flight Technology and Nuclear Reactor Technology of the Technical University of Braunschweig (IfRR/TUBS) and (b) the Research Establishment for Applied Science of Wachtberg-Werthhoven (FGAN).» ↔ «Научные исследования сосредоточены в основном в а) Технологическом институте космических полетов и ядерных реакторов Технического университета Брауншвейга (ИФРР/ТУБС) и b) Центре прикладных научных исследований Вахтберг…»
 - **По порядку (базовый)**:
-  - EN 1049–1051 ↔ RU 1133–1138: «Source: Adapted from J. D. Hawkins, M. W. Arthur and R. F. Catalano, &quot; Preventing substance abuse &quot; , Crime and Justice: A Review of Research, vol. 19, M. Tonry and D. Farrington, eds. (Chicago, University of …» ↔ «Источник: На основе J.D. Hawkins, M.W. Arthur and R.F. Catalano, &quot; Preventing substance abuse &quot; , Crime and Justice: A Review of Research, vol. 19, M. Tonry and D. Farrington, eds. (Chicago, University of Chic…»
+  - EN 129–131 ↔ RU 132: «The research activities are largely concentrated in (a) the Institute for Space Flight Technology and Nuclear Reactor Technology of the Technical University of Braunschweig (IfRR/TUBS) and (b) the Research Establishment…» ↔ «Научные исследования сосредоточены в основном в а) Технологическом институте космических полетов и ядерных реакторов Технического университета Брауншвейга (ИФРР/ТУБС) и b) Центре прикладных научных исследований Вахтберг…»
 
-### 10. un_corpus, EN–ZH, EN 1049, 1050, 1051
+### 10. un_corpus, EN–ZH, EN 129, 130, 131
 
 - **Гейл–Чёрч**:
-  - EN 1049–1050 ↔ ZH 1069: «Source: Adapted from J. D. Hawkins, M. W. Arthur and R. F. Catalano, &quot; Preventing substance abuse &quot; , Crime and Justice: A Review of Research, vol. 19, M. Tonry and D. Farrington, eds.» ↔ «来源：摘自：Hawking,Arthur和Catalano,， &quot; 预防药物滥用 &quot; ，载于《犯罪和司法：调 查概述》，第19卷，编辑Tonry和Farrington（芝加哥：芝加哥大学出版社，1995年），表1，第371－379页。»
-  - EN 1051 ↔ ZH ∅: «(Chicago, University of Chicago Press, 1995), table 1, pp. 371-379.» ↔ «∅»
+  - EN 129 ↔ ZH ∅: «The research activities are largely concentrated in» ↔ «∅»
+  - EN 130–131 ↔ ZH 134: «(a) the Institute for Space Flight Technology and Nuclear Reactor Technology of the Technical University of Braunschweig (IfRR/TUBS) and (b) the Research Establishment for Applied Science of Wachtberg-Werthhoven (FGAN).» ↔ «这些研究活动主要都集中在(a)不伦瑞克技术大学的航天技术和核反应堆技术研究所和(b)Wachtberg-Werthhoven应用科学研究所。»
 - **По порядку (базовый)**:
-  - EN 1049–1051 ↔ ZH 1069: «Source: Adapted from J. D. Hawkins, M. W. Arthur and R. F. Catalano, &quot; Preventing substance abuse &quot; , Crime and Justice: A Review of Research, vol. 19, M. Tonry and D. Farrington, eds. (Chicago, University of …» ↔ «来源：摘自：Hawking,Arthur和Catalano,， &quot; 预防药物滥用 &quot; ，载于《犯罪和司法：调 查概述》，第19卷，编辑Tonry和Farrington（芝加哥：芝加哥大学出版社，1995年），表1，第371－379页。»
+  - EN 129–131 ↔ ZH 134: «The research activities are largely concentrated in (a) the Institute for Space Flight Technology and Nuclear Reactor Technology of the Technical University of Braunschweig (IfRR/TUBS) and (b) the Research Establishment…» ↔ «这些研究活动主要都集中在(a)不伦瑞克技术大学的航天技术和核反应堆技术研究所和(b)Wachtberg-Werthhoven应用科学研究所。»
 
 ## Файлы
 
