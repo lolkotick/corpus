@@ -431,7 +431,7 @@ def render_report(cmp: Comparison, metric_head: list[str], metric_rows: list[lis
                    _fmt_seconds(r.load_seconds) if r.available else "—",
                    _fmt_seconds(r.align_seconds) if r.available else "—",
                    r.reason or r.note or ""] for r in cmp.runs],
-                 align_right_from=2),
+                 align_right_from=2, text_columns=[4]),
         "",
         "Время зависит от компьютера; для нейросетевых методов «загрузка» включает чтение "
         "модели LaBSE. Время LLM включает сетевые запросы (из кэша — почти мгновенно).",

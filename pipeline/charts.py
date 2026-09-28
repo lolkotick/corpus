@@ -23,7 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 CM = 1 / 2.54
 WIDTH_CM = 16.0
@@ -35,6 +35,9 @@ GRID = "#e4e3df"
 SURFACE = "#ffffff"
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
 LANG_COLORS = {"en": "#1f5fad", "zh": "#b5421f", "ru": "#007a52"}
+# Выравнивание — не язык, а связь языков: янтарный (как --low-mark на сайте). Вместе с
+# цветами языков проходит проверку палитры (все пары, светлая тема).
+ALIGN_COLOR = "#c28100"
 SEQUENTIAL = ["#f4f8fd", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95",
               "#0d366b"]
 
@@ -184,4 +187,60 @@ def heatmap(
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title, pad=28)
+    return save(fig, path)
+
+
+def hbars(
+    path: Path,
+    labels: Sequence[str],
+    values: Sequence[float],
+    colors: Sequence[str],
+    title: str,
+    xlabel: str = "",
+    groups: Sequence[str] | None = None,
+    legend: dict[str, str] | None = None,
+) -> Path:
+    """Горизонтальные столбцы (длинные подписи категорий читаются без поворота).
+
+    groups — подпись группы для каждой строки: между группами остаётся промежуток.
+    legend — {подпись: цвет} для легенды (цвет обозначает группу).
+    """
+    height = 2.2 + 0.62 * len(labels) + (0.4 * len(set(groups)) if groups else 0)
+    fig, ax = figure(height_cm=min(height, 22))
+    ys: list[float] = []
+    y = 0.0
+    previous = None
+    for i in range(len(labels)):
+        if groups and previous is not None and groups[i] != previous:
+            y += 0.6
+        ys.append(y)
+        previous = groups[i] if groups else None
+        y += 1.0
+    bars = ax.barh(ys, values, height=0.72, color=list(colors), linewidth=0, zorder=2)
+    peak = max(values, default=0) or 1
+    for bar, value in zip(bars, values, strict=True):
+        ax.annotate(fmt(value, 0) if float(value).is_integer() else fmt(value, 1),
+                    (bar.get_width(), bar.get_y() + bar.get_height() / 2),
+                    xytext=(3, 0), textcoords="offset points", va="center", fontsize=7.5,
+                    color=INK_SECONDARY)
+    ax.set_yticks(ys, labels)
+    ax.invert_yaxis()
+    ax.set_xlim(0, peak * 1.15)
+    ax.grid(axis="x")
+    ax.grid(axis="y", visible=False)
+    ax.spines["bottom"].set_visible(False)
+    ax.spines["left"].set_visible(True)
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: fmt(v, 0)))
+    if xlabel:
+        ax.set_xlabel(xlabel)
+    if legend:
+        from matplotlib.patches import Patch
+
+        ax.legend(handles=[Patch(color=c, label=label) for label, c in legend.items()],
+                  loc="lower left", bbox_to_anchor=(0, 1.0), ncol=len(legend),
+                  handlelength=1.0, columnspacing=1.2, borderaxespad=0.3)
+        ax.set_title(title, pad=26)
+    else:
+        ax.set_title(title)
     return save(fig, path)

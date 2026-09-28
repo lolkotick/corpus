@@ -25,13 +25,14 @@ def cell(value: Cell, digits: int = 3) -> str:
 
 
 def md_table(head: Sequence[str], rows: Sequence[Sequence[Cell]], digits: int = 3,
-             align_right_from: int = 1) -> str:
+             align_right_from: int = 1, text_columns: Sequence[int] = ()) -> str:
+    """align_right_from — числовые столбцы с этого номера; text_columns — исключения."""
     def esc(text: str) -> str:
         return text.replace("|", "\\|").replace("\n", " ")
 
     lines = ["| " + " | ".join(esc(h) for h in head) + " |",
-             "|" + "|".join("---:" if i >= align_right_from else "---"
-                            for i in range(len(head))) + "|"]
+             "|" + "|".join("---:" if i >= align_right_from and i not in text_columns
+                            else "---" for i in range(len(head))) + "|"]
     for row in rows:
         lines.append("| " + " | ".join(esc(cell(v, digits)) for v in row) + " |")
     return "\n".join(lines)

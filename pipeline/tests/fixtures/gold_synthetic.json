@@ -301,8 +301,8 @@
        "id": "en1",
        "auto": {
         "kind": "article",
-        "start": 4,
-        "end": 5,
+        "start": 7,
+        "end": 8,
         "text": "a",
         "value": "a",
         "head": {
@@ -320,8 +320,8 @@
        "id": "en2",
        "auto": {
         "kind": "article",
-        "start": 7,
-        "end": 8,
+        "start": 33,
+        "end": 34,
         "text": "a",
         "value": "a",
         "head": {
