@@ -51,6 +51,45 @@ const SHOTS = [
   { name: 'stats', route: '/stats', theme: 'light', size: DESKTOP, full: true },
   { name: 'stats-dark', route: '/stats', theme: 'dark', size: DESKTOP, full: false },
   { name: 'exercises', route: '/exercises', theme: 'light', size: DESKTOP, full: false },
+  {
+    name: 'exercises-zh',
+    route: '/exercises',
+    theme: 'light',
+    size: DESKTOP,
+    full: false,
+    actions: async (page) => {
+      await page.getByLabel(/Счётные слова/).check();
+      await page.getByRole('button', { name: /^Начать/ }).click();
+      await page.getByRole('button', { name: 'Показать подсказку (перевод)' }).click();
+      await page
+        .getByRole('group', { name: 'Варианты ответа' })
+        .getByRole('button')
+        .first()
+        .click();
+      await page.waitForTimeout(500);
+    },
+  },
+  {
+    name: 'exercises-ru-mobile',
+    route: '/exercises',
+    theme: 'dark',
+    size: MOBILE,
+    full: false,
+    actions: async (page) => {
+      await page.getByLabel(/Падежи/).check();
+      await page.getByRole('button', { name: /^Начать/ }).click();
+      await page.keyboard.type('книгу');
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(500);
+    },
+  },
+  {
+    name: 'exercises-print',
+    route: '/exercises/print?kind=mixed&n=6&seed=7',
+    theme: 'light',
+    size: DESKTOP,
+    full: true,
+  },
   { name: 'about', route: '/about', theme: 'light', size: DESKTOP, full: false },
 ];
 
