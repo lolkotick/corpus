@@ -9,6 +9,7 @@ paths:
   llm_cache: data/llm_cache    # сохранённые ответы LLM (хранятся в git: сборка без ключа их применяет)
   gold: data/gold/gold.json    # золотой стандарт — создаёт только эксперт в режиме «Проверка»
   reports: reports             # отчёты для курсовой: evaluation.md, CSV, PNG
+  approbation: data/approbation  # CSV-файлы режима «Тест» (экспорт участников)
 
 segmentation:
   # Знаки конца предложения для китайского текста.
