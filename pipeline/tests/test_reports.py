@@ -1,3 +1,4 @@
+import json
 import shutil
 
 from docx import Document
@@ -54,7 +55,10 @@ def test_build_all_without_gold_and_tests(project):
         "aligners.docx", "approbation.docx", "corpus.docx", "errors.docx", "evaluation.docx"]
     assert not config.path("gold").exists()
     corpus_md = (out / "corpus.md").read_text(encoding="utf-8")
-    assert "Текстов: **6**, пар (троек предложений EN–ZH–RU): **110**" in corpus_md
+    totals = json.loads((DATA / "stats.json").read_text(encoding="utf-8"))["totals"]
+    assert (f"Текстов: **{totals['texts']}**, пар (троек предложений EN–ZH–RU): "
+            f"**{totals['pairs']}**") in corpus_md
+    assert "## Регистры" in corpus_md and "## Оценка сложности" in corpus_md
 
     doc = Document(str(out / "docx" / "corpus.docx"))
     assert len(doc.tables) >= 5

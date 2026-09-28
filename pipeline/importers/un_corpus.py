@@ -30,7 +30,7 @@ from __future__ import annotations
 import io
 import tarfile
 import zipfile
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
 from itertools import islice
 from pathlib import Path
@@ -45,6 +45,7 @@ from pipeline.importers.common import (
     Unit,
     clean,
     download,
+    han_chars,
     select,
     write_text,
 )
@@ -75,7 +76,7 @@ MANUAL = f"""Как положить файлы корпуса ООН вручн
      или наборы для проверки (dev/test sets), где есть английский, китайский и русский.
   2. Распакуйте и положите в data/sources/un_corpus/ три файла с одинаковым числом строк:
      *.en, *.zh, *.ru (например, UNv1.0.testset.en / .zh / .ru) — или en.txt, zh.txt, ru.txt.
-     Или положите туда же попарные файлы OPUS UNPC v1.0 (https://opus.nlpl.eu, корпус UNPC):
+     Или положите туда же попарные файлы OPUS UNPC v1.0 (https://opus.nlpl.eu/UNPC/corpus/version/UNPC):
      архивы en-zh.txt.zip и en-ru.txt.zip (распаковывать не нужно)
      либо файлы UNPC.en-zh.en/.zh и UNPC.en-ru.en/.ru.
   3. Запустите: python -m pipeline import un  (или укажите путь: --from ПАПКА_ИЛИ_АРХИВ)."""
@@ -136,6 +137,32 @@ def find_sets(directory: Path) -> list[tuple[str, dict[str, Path]]]:
     return complete
 
 
+_ENDS = {"en": ".!?;:", "ru": ".!?;:", "zh": "。！？；：.!?;:"}
+_OPENERS = "\"“«‘'(["
+
+
+def is_sentence(text: str, lang: str) -> bool:
+    """Законченное предложение, а не заголовок, пункт таблицы или обрывок: начинается с
+    заглавной буквы (для ZH — с иероглифа), кончается знаком конца предложения и не набрано
+    прописными целиком."""
+    text = text.strip().rstrip("\"”»’')]")
+    letters = [ch for ch in text if ch.isalpha()]
+    if not text or not letters or text[-1] not in _ENDS[lang]:
+        return False
+    if lang != "zh" and sum(ch.isupper() for ch in letters) / len(letters) >= 0.5:
+        return False
+    first = text.lstrip(_OPENERS)[:1]
+    return bool(first) and (first.isupper() if lang != "zh" else han_chars(first) == 1)
+
+
+def sentences_only(units: Iterable[Unit], stats: ImportStats) -> Iterator[Unit]:
+    for unit in units:
+        if all(is_sentence(getattr(unit, lang), lang) for lang in LANGS):
+            yield unit
+        else:
+            stats.fragments += 1
+
+
 def iter_units(sets: list[tuple[str, dict[str, Path]]], max_lines: int) -> Iterator[Unit]:
     for stem, files in sets:
         with open(files["en"], encoding="utf-8-sig") as fe, \
@@ -189,28 +216,45 @@ def _lines(member: Member) -> Iterator[Iterator[str]]:
         yield io.TextIOWrapper(raw, encoding="utf-8-sig")
 
 
-def iter_opus_units(pairs: dict[str, tuple[Member, Member]], max_lines: int) -> Iterator[Unit]:
-    """Тройки по совпадающему английскому предложению в парах EN–ZH и EN–RU."""
+def iter_opus_units(pairs: dict[str, tuple[Member, Member]], max_lines: int,
+                    stats: ImportStats | None = None) -> Iterator[Unit]:
+    """Тройки по совпадающему английскому предложению в парах EN–ZH и EN–RU.
+
+    Английская строка, которая встречается в файле больше одного раза (типовые заголовки,
+    формулы), пропускается: её переводы могут относиться к разным документам.
+    """
     zh_of: dict[str, tuple[int, str]] = {}
+    repeated: set[str] = set()
     en_src, zh_src = pairs["en-zh"]
     with _lines(en_src) as fe, _lines(zh_src) as fz:
         for n, (en, zh) in enumerate(islice(zip(fe, fz, strict=False), max_lines), start=1):
             key = clean(en)
-            if key and key not in zh_of:
+            if not key:
+                continue
+            if key in zh_of:
+                repeated.add(key)
+            else:
                 zh_of[key] = (n, clean(zh))
     en_src, ru_src = pairs["en-ru"]
-    used: set[str] = set()
+    ru_of: dict[str, tuple[int, str]] = {}
     with _lines(en_src) as fe, _lines(ru_src) as fr:
         for n, (en, ru) in enumerate(islice(zip(fe, fr, strict=False), max_lines), start=1):
             key = clean(en)
-            if key in used or key not in zh_of:
+            if key not in zh_of:
                 continue
-            used.add(key)
-            zh_line, zh = zh_of[key]
-            ru = clean(ru)
-            if zh and ru:
-                yield Unit(key, zh, ru, origin={"source": "un_corpus", "file": "OPUS UNPC v1.0",
-                                                "line": zh_line, "line_en_ru": n})
+            if key in ru_of:
+                repeated.add(key)
+            else:
+                ru_of[key] = (n, clean(ru))
+    if stats is not None:
+        stats.notes.append(f"пропущено английских строк, повторяющихся в файлах: "
+                           f"{len(repeated & ru_of.keys())}")
+    for key, (ru_line, ru) in sorted(ru_of.items(), key=lambda item: zh_of[item[0]][0]):
+        zh_line, zh = zh_of[key]
+        if key in repeated or not zh or not ru:
+            continue
+        yield Unit(key, zh, ru, origin={"source": "un_corpus", "file": "OPUS UNPC v1.0",
+                                        "line": zh_line, "line_en_ru": ru_line})
 
 
 def locate(source: Path | None, cache_dir: Path, config: dict[str, Any]) -> Path:
@@ -254,9 +298,12 @@ def run(raw_dir: Path, cache_dir: Path, config: dict[str, Any], limit: int | Non
     if not sets and not opus:
         raise ImportFailed(f"в {folder} нет трёх параллельных файлов *.en / *.zh / *.ru "
                            f"и попарных файлов OPUS.\n{MANUAL}")
-    lines = int(max_lines if max_lines is not None else config.get("max_lines", 1_000_000))
+    lines = int(max_lines if max_lines is not None else config.get("max_lines", 3_000_000))
     filters = Filters.from_config(config.get("filters"), require_phenomenon)
-    units = iter_units(sets, lines) if sets else iter_opus_units(opus or {}, lines)
+    units: Iterable[Unit] = iter_units(sets, lines) if sets else \
+        iter_opus_units(opus or {}, lines, stats)
+    if config.get("sentences_only", True):
+        units = sentences_only(units, stats)
     chosen = select(units, filters,
                     int(limit if limit is not None else config.get("limit", 2000)),
                     int(seed if seed is not None else config.get("seed", 2026)), stats,

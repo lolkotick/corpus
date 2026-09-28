@@ -132,6 +132,11 @@ def test_build_with_imported_source(project):
         official["cases"]["nouns"]
     assert sum(stats["levels"].values()) == stats["totals"]["pairs"]
 
+    with open(out / "attribution.csv", encoding="utf-8-sig") as fh:
+        rows = list(csv.DictReader(fh))
+    assert len(rows) == 4 and {r["author"] for r in rows} == {"United Nations"}
+    assert rows[0]["file"] == "UNv1.0.testset" and rows[0]["line"] == "1"
+
 
 def test_units_must_match_paragraphs(tmp_path):
     import pytest

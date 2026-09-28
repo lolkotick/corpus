@@ -90,6 +90,20 @@ export interface Link {
   score: number;
 }
 
+/** Предложение Tatoeba: номер, автор (имя пользователя) и лицензия — для указания авторства. */
+export interface TatoebaSentence {
+  id: number;
+  lang: string;
+  author: string;
+  license: string;
+  url: string;
+}
+
+/** Происхождение тройки из импортированного источника (units.jsonl). */
+export type PairOrigin =
+  | { source: 'tatoeba'; en: TatoebaSentence; zh: TatoebaSentence; ru: TatoebaSentence }
+  | { source: 'un_corpus'; file: string; line: number; line_en_ru?: number };
+
 export interface Pair {
   id: string;
   text_id: string;
@@ -107,6 +121,11 @@ export interface Pair {
   status: Status;
   llm_note: LlmNote | null;
   comment: string;
+  /** Уровень пары: авторский уровень текста или (для импорта) по оценке сложности. */
+  level?: Level;
+  /** Оценка сложности 0–1 по длине и частотности лексики (pipeline/difficulty.py). */
+  difficulty?: number;
+  origin?: PairOrigin;
 }
 
 export interface TextMeta {
@@ -118,6 +137,13 @@ export interface TextMeta {
   topic: string;
   level: Level;
   author: string;
+  /** Регистр: учебный, бытовой, официальный. */
+  register?: string;
+  source_url?: string;
+  license?: string;
+  license_url?: string;
+  attribution?: string;
+  level_method?: string;
   pairs: number;
   /** Предложения текста после сегментации (для исправления выравнивания). */
   sentences: Record<Lang, string[]>;
@@ -164,6 +190,7 @@ export interface TextStat {
   title: string;
   title_ru: string;
   level: Level;
+  register?: string;
   pairs: number;
   articles: Record<ArticleValue, number>;
   classifiers: number;
@@ -175,6 +202,31 @@ export interface TextStat {
     articles_per_100_words: number;
     classifiers_per_100_chars: number;
     nouns_per_100_words: number;
+  };
+}
+
+/** Сравнение регистров по трём явлениям (stats.json → registers). */
+export interface RegisterStat {
+  register: string;
+  texts: number;
+  pairs: number;
+  words: Record<Lang, number>;
+  difficulty_mean: number | null;
+  articles: {
+    counts: Record<ArticleValue, number>;
+    per_100_words: number;
+    per_100_words_by_value: Record<ArticleValue, number>;
+  };
+  classifiers: {
+    count: number;
+    distinct: number;
+    per_100_chars: number;
+    top: { value: string; count: number; share: number }[];
+  };
+  cases: {
+    nouns: number;
+    per_100_words: number;
+    distribution: { case: CaseCode; label: string; count: number; share: number }[];
   };
 }
 
@@ -228,4 +280,5 @@ export interface Stats {
     histogram: { from: number; to: number; count: number }[];
   };
   texts: TextStat[];
+  registers?: RegisterStat[];
 }

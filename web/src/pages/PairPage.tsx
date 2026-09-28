@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { PairAttribution, SourcesLink } from '../components/Attribution';
 import { Container } from '../components/Container';
 import { DataGate } from '../components/DataGate';
 import { ScrollArea } from '../components/ScrollArea';
@@ -259,7 +260,8 @@ function PairContent({ pair, data }: { pair: Pair; data: CorpusIndex }) {
       <header className="mt-6 flex animate-fade-up flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[13px] tracking-[0.08em] text-muted uppercase">
-            {text ? `${text.title} · ${text.level}` : pair.text_id} · предложение {pair.position}
+            {text ? `${text.title} · ${pair.level ?? text.level}` : pair.text_id} · предложение{' '}
+            {pair.position}
           </p>
           <h1 className="mt-1 font-serif text-[34px] font-semibold">
             Пара <span className="font-mono text-[28px]">{pair.id}</span>
@@ -480,12 +482,45 @@ function PairContent({ pair, data }: { pair: Pair; data: CorpusIndex }) {
               )}
             </dd>
             <dt className="text-muted">Уровень</dt>
-            <dd>{text.level}</dd>
+            <dd>
+              {pair.level ?? text.level}
+              {pair.origin ? (
+                <span className="text-muted"> — оценка по длине и частотности лексики</span>
+              ) : (
+                <span className="text-muted"> — уровень текста</span>
+              )}
+              {pair.difficulty !== undefined && (
+                <span className="text-muted">
+                  {' '}
+                  (сложность {pair.difficulty.toLocaleString('ru-RU', { maximumFractionDigits: 2 })}
+                  )
+                </span>
+              )}
+            </dd>
+            <dt className="text-muted">Регистр</dt>
+            <dd>{text.register ?? 'учебный'}</dd>
             <dt className="text-muted">Тематика</dt>
             <dd>{text.topic}</dd>
             <dt className="text-muted">Источник</dt>
             <dd>{text.source}</dd>
+            {text.license && (
+              <>
+                <dt className="text-muted">Лицензия</dt>
+                <dd>{text.license}</dd>
+              </>
+            )}
+            {pair.origin && (
+              <>
+                <dt className="text-muted">Авторство</dt>
+                <dd>
+                  <PairAttribution pair={pair} text={text} />
+                </dd>
+              </>
+            )}
           </dl>
+          <p className="mt-4 text-sm">
+            <SourcesLink />
+          </p>
         </Section>
       )}
     </Container>

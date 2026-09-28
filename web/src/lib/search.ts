@@ -286,7 +286,7 @@ export function runSearch(corpus: Corpus, p: SearchParams): SearchResult[] {
 
   for (const pair of corpus.pairs) {
     if (p.text && pair.text_id !== p.text) continue;
-    if (p.level && levelOf.get(pair.text_id) !== p.level) continue;
+    if (p.level && (pair.level ?? levelOf.get(pair.text_id)) !== p.level) continue;
     if (p.status && pair.status !== p.status) continue;
     if (pair.alignment_score < p.minScore - 1e-9 || pair.alignment_score > p.maxScore + 1e-9) {
       continue;

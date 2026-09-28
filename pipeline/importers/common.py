@@ -95,6 +95,7 @@ class Filters:
 @dataclass
 class ImportStats:
     candidates: int = 0
+    fragments: int = 0  # строки-заголовки и обрывки (отбрасываются до подсчёта кандидатов)
     too_short_or_long: int = 0
     duplicates: int = 0
     no_phenomenon: int = 0
@@ -103,7 +104,10 @@ class ImportStats:
     notes: list[str] = field(default_factory=list)
 
     def summary(self) -> str:
-        return (f"кандидатов {self.candidates}; отброшено: длина {self.too_short_or_long}, "
+        skipped = (f"пропущено заголовков и фрагментов {self.fragments}; "
+                   if self.fragments else "")
+        return (f"{skipped}кандидатов {self.candidates}; "
+                f"отброшено: длина {self.too_short_or_long}, "
                 f"дубликаты {self.duplicates}, без целевых явлений {self.no_phenomenon}; "
                 f"прошло фильтры {self.kept}; записано {self.written}")
 

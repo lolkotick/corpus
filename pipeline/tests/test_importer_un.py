@@ -70,9 +70,12 @@ def test_tar_archive_is_extracted_to_cache(tmp_path):
 def test_opus_pairs_are_joined_by_english(tmp_path):
     src = copy(OPUS, tmp_path / "src")
     path, stats = un_corpus.run(tmp_path / "raw", tmp_path / "cache", {}, source=src)
-    assert stats.candidates == 2 and stats.written == 2
+    # Заголовок прописными и пункт «(a) …» — не предложения; строка про доклад дважды
+    # встречается в паре EN–RU с разными переводами — пропущена.
+    assert stats.fragments == 2 and stats.candidates == 2 and stats.written == 2
+    assert any("повторяющихся в файлах: 1" in note for note in stats.notes)
     units = read_units(path)
-    assert [(u["line"], u["line_en_ru"]) for u in units] == [(1, 3), (3, 1)]
+    assert [(u["line"], u["line_en_ru"]) for u in units] == [(3, 4), (5, 2)]
     zh = (path / "zh.txt").read_text(encoding="utf-8").split("\n\n")
     ru = (path / "ru.txt").read_text(encoding="utf-8").split("\n\n")
     assert zh[1].strip() == "两名专家出席了会议。"
@@ -97,6 +100,25 @@ def test_opus_zip_download(tmp_path):
         ["en-ru.txt.zip", "en-zh.txt.zip"]
     _, stats = un_corpus.run(tmp_path / "raw", tmp_path / "cache", {})
     assert stats.written == 2
+
+
+def test_sentence_check():
+    assert un_corpus.is_sentence("The meeting rose at 1 p.m.", "en")
+    assert un_corpus.is_sentence("“Requests the Secretary-General to report;”", "en")
+    assert un_corpus.is_sentence("大会通过了该决议。", "zh")
+    assert un_corpus.is_sentence("Комитет рассмотрел доклад.", "ru")
+    assert not un_corpus.is_sentence("OF THE UNITED NATIONS ADDRESSED.", "en")
+    assert not un_corpus.is_sentence("Chairman of the Second Committee", "en")
+    assert not un_corpus.is_sentence("10. Air and surface freight", "en")
+    assert not un_corpus.is_sentence("(a) 运送装备", "zh")
+    assert not un_corpus.is_sentence("а) перевозка имущества.", "ru")
+
+
+def test_sentences_only_can_be_switched_off(tmp_path):
+    src = copy(OPUS, tmp_path / "src")
+    _, stats = un_corpus.run(tmp_path / "raw", tmp_path / "cache", {"sentences_only": False},
+                             source=src, require_phenomenon=False)
+    assert stats.fragments == 0 and stats.candidates == 4
 
 
 def test_missing_files_print_manual_instructions(tmp_path):

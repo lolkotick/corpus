@@ -322,6 +322,39 @@ def compute_stats(
     }
 
 
+ATTRIBUTION_COLUMNS = ["pair_id", "source", "lang", "sentence_id", "author", "license", "url",
+                       "file", "line"]
+
+
+def write_attribution(path: Path, records: list[dict[str, Any]]) -> int:
+    """attribution.csv: авторство каждого импортированного предложения (требование лицензий)."""
+    rows = []
+    for r in records:
+        origin = r.get("origin")
+        if not origin:
+            continue
+        if origin.get("source") == "tatoeba":
+            for lang in ("en", "zh", "ru"):
+                s = origin.get(lang) or {}
+                rows.append({"pair_id": r["id"], "source": "Tatoeba", "lang": lang,
+                             "sentence_id": s.get("id", ""), "author": s.get("author", ""),
+                             "license": s.get("license", ""), "url": s.get("url", "")})
+        else:
+            line = str(origin.get("line", ""))
+            if origin.get("line_en_ru"):
+                line += f" (EN–RU: {origin['line_en_ru']})"
+            rows.append({"pair_id": r["id"], "source": "United Nations Parallel Corpus v1.0",
+                         "lang": "en,zh,ru", "author": "United Nations",
+                         "license": "public domain", "file": origin.get("file", ""),
+                         "line": line})
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8-sig", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=ATTRIBUTION_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    return len(rows)
+
+
 def write_outputs(
     output_dir: Path,
     records: list[dict[str, Any]],
@@ -344,4 +377,5 @@ def write_outputs(
     dump_json(output_dir / "corpus.json", corpus)
     dump_json(output_dir / "stats.json", stats)
     write_csv(output_dir / "corpus.csv", records, {t["id"]: t for t in texts_out}, delimiter)
+    write_attribution(output_dir / "attribution.csv", records)
     return stats

@@ -20,7 +20,7 @@ on:
         default: "2000"
       un_max_lines:
         description: "ООН: сколько первых строк файлов просматривать"
-        default: "1000000"
+        default: "3000000"
 
 permissions:
   contents: write
@@ -37,7 +37,7 @@ jobs:
     env:
       TATOEBA_LIMIT: ${{ inputs.tatoeba_limit || '500' }}
       UN_LIMIT: ${{ inputs.un_limit || '2000' }}
-      UN_MAX_LINES: ${{ inputs.un_max_lines || '1000000' }}
+      UN_MAX_LINES: ${{ inputs.un_max_lines || '3000000' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6

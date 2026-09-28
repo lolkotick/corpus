@@ -142,7 +142,13 @@ function articleItems(pair: Pair, level: Level): ExerciseItem[] {
       const { before, after } = slice(pair.en, ann.start, ann.end);
       const first = ann.text.charAt(0);
       const capital = first !== first.toLowerCase();
-      const options = capital ? ['A', 'An', 'The'] : ['a', 'an', 'the'];
+      // Варианты пишутся так же, как ответ: the / The / THE (заголовки документов ООН).
+      const allCaps = ann.text.length > 1 && ann.text === ann.text.toUpperCase();
+      const options = allCaps
+        ? ['A', 'AN', 'THE']
+        : capital
+          ? ['A', 'An', 'The']
+          : ['a', 'an', 'the'];
       return {
         id: `${pair.id}:${ann.id}`,
         kind: 'article',
@@ -353,7 +359,7 @@ export function allItems(corpus: Corpus, seed: number): ExerciseItem[] {
   const levelOf = new Map(corpus.texts.map((t) => [t.id, t.level]));
   const items: ExerciseItem[] = [];
   for (const pair of corpus.pairs) {
-    const level = levelOf.get(pair.text_id) ?? 'A1';
+    const level = pair.level ?? levelOf.get(pair.text_id) ?? 'A1';
     items.push(
       ...articleItems(pair, level),
       ...classifierItems(pair, level, ctx, random),

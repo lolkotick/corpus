@@ -9,7 +9,7 @@ import {
   serializeParams,
   type SearchParams,
 } from './search';
-import { CORPUS } from './testFixtures';
+import { CORPUS, PAIR_BOOK, PAIR_TEA } from './testFixtures';
 
 function search(patch: Partial<SearchParams>) {
   return runSearch(CORPUS, { ...DEFAULT_PARAMS, ...patch });
@@ -88,5 +88,15 @@ describe('KWIC', () => {
   it('ключ левого контекста читается справа налево', () => {
     expect(leftKey('…Она взяла две ', 'ru')).toBe('две взяла Она');
     expect(leftKey('她点了一', 'zh')).toBe('一了点她');
+  });
+});
+
+describe('уровень пары', () => {
+  it('уровень импортированной пары важнее уровня текста', () => {
+    const corpus = { ...CORPUS, pairs: [{ ...PAIR_BOOK, level: 'B2' as const }, PAIR_TEA] };
+    const byLevel = (level: 'A2' | 'B2') =>
+      runSearch(corpus, { ...DEFAULT_PARAMS, level }).map((r) => r.pair.id);
+    expect(byLevel('B2')).toEqual([PAIR_BOOK.id]);
+    expect(byLevel('A2')).toEqual([PAIR_TEA.id]);
   });
 });
