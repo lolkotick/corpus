@@ -5,9 +5,11 @@ import { Layout } from './components/Layout';
 import { LoadingState } from './components/ui';
 import { CorpusProvider } from './data/CorpusProvider';
 import { ComingSoonPage } from './pages/ComingSoonPage';
+import { ExercisesPage } from './pages/ExercisesPage';
 import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PairPage } from './pages/PairPage';
+import { PrintPage } from './pages/PrintPage';
 import { SearchPage } from './pages/SearchPage';
 
 // Графики (Recharts) нужны только на странице статистики — грузим её отдельным чанком.
@@ -31,7 +33,8 @@ export function App() {
                 </Suspense>
               }
             />
-            <Route path="exercises" element={<ComingSoonPage title="Упражнения" />} />
+            <Route path="exercises" element={<ExercisesPage />} />
+            <Route path="exercises/print" element={<PrintPage />} />
             <Route path="about" element={<ComingSoonPage title="О проекте" />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>

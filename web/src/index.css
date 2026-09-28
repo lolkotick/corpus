@@ -277,3 +277,34 @@
     text-decoration-style: wavy;
   }
 }
+
+/* Печать: всегда светлые цвета, без фона и теней; поля страницы A4. */
+@media print {
+  :root,
+  :root[data-theme='dark'],
+  :root:not([data-theme='light']) {
+    --paper: #ffffff;
+    --surface: #ffffff;
+    --sunken: #f3f3f3;
+    --ink: #000000;
+    --muted: #444444;
+    --rule: #cccccc;
+    --rule-strong: #999999;
+    --shadow: none;
+    color-scheme: light;
+  }
+
+  @page {
+    size: A4;
+    margin: 16mm 14mm;
+  }
+
+  body {
+    background: #ffffff;
+    font-size: 12pt;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}
