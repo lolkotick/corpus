@@ -10,5 +10,6 @@ python-dotenv>=1.0
 numpy>=1.26
 anthropic>=1.8
 matplotlib>=3.8          # графики отчётов (reports/*.png)
+python-docx>=1.1         # копии отчётов в Word (reports/docx/*.docx)
 # Английская модель spaCy (ставится отдельной командой, см. README):
 #   python -m spacy download en_core_web_sm

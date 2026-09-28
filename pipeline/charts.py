@@ -77,14 +77,15 @@ def setup() -> None:
 
 def figure(height_cm: float = 9.0, width_cm: float = WIDTH_CM) -> tuple[Figure, plt.Axes]:
     setup()
-    fig, ax = plt.subplots(figsize=(width_cm * CM, height_cm * CM))
+    # Точный размер (без обрезки полей при сохранении): при вставке в Word по ширине
+    # полосы 16 см картинка не масштабируется и остаётся в 300 dpi.
+    fig, ax = plt.subplots(figsize=(width_cm * CM, height_cm * CM), layout="constrained")
     return fig, ax
 
 
 def save(fig: Figure, path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=DPI, bbox_inches="tight", pad_inches=0.08,
-                metadata={"Software": None})
+    fig.savefig(path, dpi=DPI, metadata={"Software": None})
     plt.close(fig)
     return path
 
