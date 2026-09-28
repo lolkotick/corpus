@@ -9,7 +9,7 @@
   "attribution": "Источник — Организация Объединённых Наций; ссылка на корпус: Ziemski, M., Junczys-Dowmunt, M., Pouliquen, B. The United Nations Parallel Corpus v1.0 // Proceedings of LREC 2016. Portorož, 2016. P. 3530–3534.",
   "register": "официальный",
   "topic": "Официальные документы ООН",
-  "level": "B1",
+  "level": "C1",
   "level_method": "медиана оценок сложности троек (pipeline/difficulty.py)",
   "author": "",
   "units": "2000"
