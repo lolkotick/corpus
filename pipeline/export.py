@@ -265,7 +265,7 @@ def write_outputs(
     counts = Counter(r["text_id"] for r in records)
     texts_out = [{**t, "pairs": counts.get(t["id"], 0)} for t in texts]
     corpus = {
-        "version": 1,
+        "version": 2,
         **build,
         "texts": texts_out,
         "classifiers": classifiers,

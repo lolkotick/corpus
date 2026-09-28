@@ -39,6 +39,19 @@ class AlignedSegment:
     en_zh: float
     en_ru: float
     method: str
+    # Номера предложений каждого языка [начало, конец) — для оценки выравнивания по эталону.
+    spans: dict[str, tuple[int, int]] = field(default_factory=dict)
+
+    def shifted(self, offsets: dict[str, int]) -> AlignedSegment:
+        """Тот же сегмент с номерами предложений, сдвинутыми на начало абзаца."""
+        spans = {lang: (a + offsets[lang], b + offsets[lang]) for lang, (a, b) in
+                 self.spans.items()}
+        return AlignedSegment(self.en, self.zh, self.ru, self.en_zh, self.en_ru, self.method,
+                              spans)
+
+    def sentence_ids(self, lang: str) -> list[int]:
+        start, end = self.spans.get(lang, (0, 0))
+        return list(range(start, end))
 
     @property
     def alignment_type(self) -> str:
@@ -195,6 +208,7 @@ def merge_on_pivot(
                 en_zh=round(zscore, 4),
                 en_ru=round(rscore, 4),
                 method=method,
+                spans={"en": (a, b), "zh": (zs, ze), "ru": (rs, re_)},
             )
         )
     return segments
