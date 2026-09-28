@@ -19,8 +19,15 @@
   --en-tint: #e8f0fa;
   --zh: #b5421f;
   --zh-tint: #fbece6;
-  --ru: #16795a;
+  --ru: #007a52;
   --ru-tint: #e3f2ea;
+  /* Цвета меток графиков (проверены валидатором палитры: полоса светлоты, хрома, CVD). */
+  --en-mark: #1f5fad;
+  --zh-mark: #b5421f;
+  --ru-mark: #007a52;
+  --ru-mark-2: #5bb38d;
+  --neutral-mark: #6b675f;
+  --low-mark: #c28100;
   --query: #fbe7a1;
   --query-ring: #c99a06;
   --danger: #b42318;
@@ -46,6 +53,12 @@
     --zh-tint: #3a2119;
     --ru: #6fcfa6;
     --ru-tint: #16302a;
+    --en-mark: #4c8ee6;
+    --zh-mark: #e56b40;
+    --ru-mark: #18a877;
+    --ru-mark-2: #0f6b4a;
+    --neutral-mark: #9a958a;
+    --low-mark: #e0a52e;
     --query: #5a4a12;
     --query-ring: #e0b93a;
     --danger: #ff8a7a;
@@ -71,6 +84,12 @@
   --zh-tint: #3a2119;
   --ru: #6fcfa6;
   --ru-tint: #16302a;
+  --en-mark: #4c8ee6;
+  --zh-mark: #e56b40;
+  --ru-mark: #18a877;
+  --ru-mark-2: #0f6b4a;
+  --neutral-mark: #9a958a;
+  --low-mark: #e0a52e;
   --query: #5a4a12;
   --query-ring: #e0b93a;
   --danger: #ff8a7a;
