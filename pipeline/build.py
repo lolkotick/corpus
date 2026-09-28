@@ -20,7 +20,7 @@ from pipeline.llm import LlmStats, review
 from pipeline.manual import Overrides, apply_overrides
 from pipeline.report import write_report
 from pipeline.segment import segment_paragraphs
-from pipeline.sources import LANGS, RawText, discover_texts, read_text
+from pipeline.sources import LANGS, LEVELS, RawText, discover_texts, read_text
 
 log = logging.getLogger(__name__)
 
@@ -86,6 +86,8 @@ def run_build(config: Config, use_llm: bool = True) -> BuildResult:
     # 1. Чтение
     with _stage(result, "Чтение текстов") as st:
         raw_texts = [read_text(d) for d in discover_texts(config.path("raw"))]
+        # Порядок в корпусе — от простого к сложному: по уровню, затем по id.
+        raw_texts.sort(key=lambda t: (LEVELS.index(t.meta.level), t.meta.id))
         if not raw_texts:
             raise SystemExit(f"В {config.path('raw')} нет ни одного текста")
         result.texts = [t.meta.to_dict() for t in raw_texts]
