@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Sequence
+from functools import cache
 from typing import Any
 
 log = logging.getLogger(__name__)
@@ -86,6 +87,7 @@ def _annotate_rules(texts: Sequence[str]) -> list[list[dict[str, Any]]]:
     return result
 
 
+@cache
 def load_spacy(model_name: str) -> Any:
     import spacy
 

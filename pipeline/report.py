@@ -95,6 +95,9 @@ def write_report(path: Path, result: BuildResult, config: Config) -> None:
         f"(эллипсис): {stats.get('classifier_elliptical', 0)}",
         "- Падежи: " + ", ".join(
             f"{c['label']} — {c['sing'] + c['plur']}" for c in stats.get("cases", [])),
+        f"- Переводные эквиваленты существительных (коэффициент Дайса + конкурентное "
+        f"связывание): {result.lexicon.get('entries', 0)} пар лемм, "
+        f"{result.lexicon.get('links', 0)} связей в парах",
         f"- Спорных элементов разметки: {totals.get('disputed', 0)} "
         f"(из них неоднозначных падежей: {totals.get('ambiguous_cases', 0)})",
         "",

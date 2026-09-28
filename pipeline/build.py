@@ -16,6 +16,7 @@ from pipeline.annotate.ru import annotate_ru
 from pipeline.annotate.zh import annotate_zh
 from pipeline.config import Config
 from pipeline.export import write_outputs
+from pipeline.lexicon import build_links
 from pipeline.llm import LlmStats, review
 from pipeline.manual import Overrides, apply_overrides
 from pipeline.report import write_report
@@ -43,6 +44,7 @@ class BuildResult:
     alignment_method: str = ""
     annotation_methods: dict[str, str] = field(default_factory=dict)
     manual: dict[str, int] = field(default_factory=dict)
+    lexicon: dict[str, int] = field(default_factory=dict)
     llm: LlmStats = field(default_factory=LlmStats)
     started_at: str = ""
     total_seconds: float = 0.0
@@ -195,6 +197,15 @@ def run_build(config: Config, use_llm: bool = True) -> BuildResult:
         for r, anns in zip(records, ru_anns, strict=True):
             r["annotations"]["ru"] = anns
         st.detail = f"{sum(len(a) for a in ru_anns)} существительных"
+
+    with _stage(result, "Переводные эквиваленты (Dice)") as st:
+        lexicon_stats, lexicon_warnings = build_links(
+            records, config.get("annotation.en.spacy_model", "en_core_web_sm")
+        )
+        result.warnings += lexicon_warnings
+        result.lexicon = lexicon_stats
+        st.detail = (f"{lexicon_stats['entries']} пар лемм, "
+                     f"{lexicon_stats['links']} связей в парах")
 
     # 6. LLM-проверка (необязательно)
     with _stage(result, "LLM-проверка") as st:

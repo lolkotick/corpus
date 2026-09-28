@@ -1,0 +1,260 @@
+@import 'tailwindcss';
+
+/*
+ * Дизайн-токены. Цвета заданы CSS-переменными и переключаются темой:
+ *  - без data-theme — по системной настройке (prefers-color-scheme);
+ *  - data-theme="light" / "dark" — явный выбор пользователя.
+ * У каждого языка свой постоянный акцент: EN — синий, ZH — киноварь, RU — зелёный.
+ * Контраст акцентов с фоном и подложками ≥ 4,5:1 в обеих темах (WCAG AA).
+ */
+:root {
+  --paper: #fbfaf7;
+  --surface: #ffffff;
+  --sunken: #f3f1ec;
+  --ink: #1c1b19;
+  --muted: #5f5b53;
+  --rule: #e4dfd4;
+  --rule-strong: #cfc8b9;
+  --en: #1f5fad;
+  --en-tint: #e8f0fa;
+  --zh: #b5421f;
+  --zh-tint: #fbece6;
+  --ru: #16795a;
+  --ru-tint: #e3f2ea;
+  --query: #fbe7a1;
+  --query-ring: #c99a06;
+  --danger: #b42318;
+  --danger-tint: #fdecea;
+  --warn: #8a5a00;
+  --warn-tint: #fdf3dc;
+  --shadow: 0 1px 2px rgb(28 27 25 / 0.06), 0 8px 24px -16px rgb(28 27 25 / 0.25);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #15171a;
+    --surface: #1b1d21;
+    --sunken: #0f1012;
+    --ink: #ece9e2;
+    --muted: #a8a397;
+    --rule: #2b2e33;
+    --rule-strong: #3a3e45;
+    --en: #8db6f2;
+    --en-tint: #1b2a3f;
+    --zh: #f19a79;
+    --zh-tint: #3a2119;
+    --ru: #6fcfa6;
+    --ru-tint: #16302a;
+    --query: #5a4a12;
+    --query-ring: #e0b93a;
+    --danger: #ff8a7a;
+    --danger-tint: #3a1a17;
+    --warn: #f0c060;
+    --warn-tint: #3a2d10;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -16px rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #15171a;
+  --surface: #1b1d21;
+  --sunken: #0f1012;
+  --ink: #ece9e2;
+  --muted: #a8a397;
+  --rule: #2b2e33;
+  --rule-strong: #3a3e45;
+  --en: #8db6f2;
+  --en-tint: #1b2a3f;
+  --zh: #f19a79;
+  --zh-tint: #3a2119;
+  --ru: #6fcfa6;
+  --ru-tint: #16302a;
+  --query: #5a4a12;
+  --query-ring: #e0b93a;
+  --danger: #ff8a7a;
+  --danger-tint: #3a1a17;
+  --warn: #f0c060;
+  --warn-tint: #3a2d10;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -16px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-en: var(--en);
+  --color-en-tint: var(--en-tint);
+  --color-zh: var(--zh);
+  --color-zh-tint: var(--zh-tint);
+  --color-ru: var(--ru);
+  --color-ru-tint: var(--ru-tint);
+  --color-query: var(--query);
+  --color-danger: var(--danger);
+  --color-danger-tint: var(--danger-tint);
+  --color-warn: var(--warn);
+  --color-warn-tint: var(--warn-tint);
+  --shadow-soft: var(--shadow);
+
+  --font-sans: 'Inter', 'Noto Sans SC', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  --font-serif: 'Source Serif 4', 'Noto Serif SC', 'Noto Sans SC', Georgia, serif;
+  --font-zh: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans SC', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  --animate-fade-up: fade-up 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-fade-in: fade-in 0.25s ease-out both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Иероглифам нужен больший интерлиньяж и немного разрядки. */
+  :lang(zh) {
+    font-family: var(--font-zh);
+    line-height: 1.85;
+    letter-spacing: 0.02em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--en);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--query);
+    color: var(--ink);
+  }
+
+  a {
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  input[type='range'] {
+    accent-color: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  /* Подсветка совпадений запроса и разметки. */
+  .mark-query {
+    background: var(--query);
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--query-ring) 45%, transparent);
+    color: inherit;
+  }
+  /* Переводной эквивалент найденного слова в другой колонке. */
+  .mark-equiv {
+    background: color-mix(in srgb, var(--query) 50%, transparent);
+    border-radius: 3px;
+    outline: 1.5px dashed color-mix(in srgb, var(--query-ring) 70%, transparent);
+    outline-offset: 1px;
+    color: inherit;
+  }
+  .mark-en,
+  .mark-zh,
+  .mark-ru {
+    border-radius: 2px;
+    color: inherit;
+    background: transparent;
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+  }
+  .mark-en {
+    text-decoration-color: color-mix(in srgb, var(--en) 55%, transparent);
+  }
+  .mark-zh {
+    text-decoration-color: color-mix(in srgb, var(--zh) 55%, transparent);
+  }
+  .mark-ru {
+    text-decoration-color: color-mix(in srgb, var(--ru) 55%, transparent);
+  }
+  .mark-strong.mark-en {
+    background: var(--en-tint);
+    text-decoration-color: var(--en);
+  }
+  .mark-strong.mark-zh {
+    background: var(--zh-tint);
+    text-decoration-color: var(--zh);
+  }
+  .mark-strong.mark-ru {
+    background: var(--ru-tint);
+    text-decoration-color: var(--ru);
+  }
+  .mark-soft {
+    text-decoration-style: dotted;
+  }
+  .mark-disputed {
+    text-decoration-style: wavy;
+  }
+}
