@@ -11,6 +11,7 @@ import { plural } from '../lib/labels';
 import { groupByRegister, tatoebaAuthors, unViaOpus } from '../lib/sources';
 
 const DATA = `${import.meta.env.BASE_URL}data/`;
+const REPO = 'https://github.com/lolkotick/corpus';
 /** Когда условия лицензий сверялись с официальными страницами. */
 const CHECKED_AT = '28 сентября 2026 г.';
 const LINK = 'underline decoration-rule-strong underline-offset-4 hover:decoration-ink';
@@ -231,9 +232,25 @@ function SourcesContent({ corpus }: CorpusIndex) {
               'текста составлены',
               'текстов составлены',
             )}{' '}
-            для корпуса с помощью ИИ; переводы требуют проверки преподавателем. Отдельная лицензия
-            для них не указана. Источник каждого текста — в карточке пары.
+            для корпуса с помощью ИИ; переводы требуют проверки преподавателем. Источник каждого
+            текста — в карточке пары.
           </p>
+          <Terms
+            rows={[
+              [
+                'Лицензия',
+                <>
+                  <Ext href={`${REPO}/blob/main/LICENSE`}>MIT</Ext>, © 2026 Лебедев Глеб Романович —
+                  вместе с кодом проекта (pipeline и сайт).
+                </>,
+              ],
+              ['Требование', 'В копиях сохранять уведомление об авторском праве и текст лицензии.'],
+              [
+                'Не распространяется',
+                'на предложения Tatoeba и документы ООН: для них действуют условия, указанные выше, в том числе в файлах corpus.json, corpus.csv и attribution.csv.',
+              ],
+            ]}
+          />
         </Card>
 
         <Card id="src-tools" title="Ресурсы, использованные при импорте">
