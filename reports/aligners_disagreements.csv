@@ -1,0 +1,21 @@
+﻿№;текст;языки;метод;группы;есть эталон
+1;example;EN–RU;Гейл–Чёрч;EN 17–18 ↔ RU 17–18;нет
+1;example;EN–RU;По порядку (базовый);"EN 17 ↔ RU 17; EN 18 ↔ RU 18";нет
+2;example;EN–ZH;Гейл–Чёрч;EN 17–18 ↔ ZH 18;нет
+2;example;EN–ZH;По порядку (базовый);"EN 17 ↔ ZH 18; EN 18 ↔ ZH 19";нет
+3;child_language;EN–ZH;Гейл–Чёрч;EN 11 ↔ ZH 11–12;нет
+3;child_language;EN–ZH;По порядку (базовый);EN 11 ↔ ZH 11;нет
+4;letter_xian;EN–ZH;Гейл–Чёрч;EN 2 ↔ ZH 2–3;нет
+4;letter_xian;EN–ZH;По порядку (базовый);EN 2 ↔ ZH 2;нет
+5;example;EN–RU;Гейл–Чёрч;"EN 19 ↔ RU 19; EN 20 ↔ RU 20";нет
+5;example;EN–RU;По порядку (базовый);EN 19–20 ↔ RU 19–20;нет
+6;example;EN–ZH;Гейл–Чёрч;"EN 19 ↔ ZH 19; EN 20 ↔ ZH 20";нет
+6;example;EN–ZH;По порядку (базовый);EN 19–20 ↔ ZH 20;нет
+7;child_language;EN–ZH;Гейл–Чёрч;EN 12 ↔ ZH 13–14;нет
+7;child_language;EN–ZH;По порядку (базовый);EN 12 ↔ ZH 12–14;нет
+8;letter_xian;EN–ZH;Гейл–Чёрч;EN 3 ↔ ZH 4;нет
+8;letter_xian;EN–ZH;По порядку (базовый);EN 3 ↔ ZH 3;нет
+9;example;EN–ZH;Гейл–Чёрч;EN 24 ↔ ZH 24–25;нет
+9;example;EN–ZH;По порядку (базовый);EN 24 ↔ ZH 24;нет
+10;letter_xian;EN–ZH;Гейл–Чёрч;EN 4 ↔ ZH 5;нет
+10;letter_xian;EN–ZH;По порядку (базовый);EN 4 ↔ ZH 4–5;нет

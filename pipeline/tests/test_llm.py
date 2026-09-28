@@ -54,7 +54,7 @@ def test_without_key_nothing_is_called(tmp_path, monkeypatch):
 def test_review_with_fake_api_and_cache(tmp_path, monkeypatch):
     calls = []
 
-    def fake_call(client, model, effort, prompt):
+    def fake_call(client, model, effort, prompt, *_):
         calls.append(prompt)
         return dict(ANSWER, _model=model)
 

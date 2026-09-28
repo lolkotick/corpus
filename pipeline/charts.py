@@ -114,6 +114,7 @@ def grouped_bars(
     ylim: tuple[float, float] | None = (0.0, 1.0),
     colors: Sequence[str] | None = None,
     value_digits: int = 2,
+    tick_digits: int | None = None,
 ) -> Path:
     """Сгруппированные столбцы с подписями значений; None — «нет данных»."""
     fig, ax = figure()
@@ -137,7 +138,8 @@ def grouped_bars(
     if ylim:
         ax.set_ylim(ylim[0], ylim[1] * 1.08)
         ax.set_yticks([ylim[0] + (ylim[1] - ylim[0]) * k / 5 for k in range(6)])
-    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: fmt(v, 1 if ylim else 0)))
+    digits = tick_digits if tick_digits is not None else (1 if ylim else 0)
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: fmt(v, digits)))
     if ylabel:
         ax.set_ylabel(ylabel)
     ax.set_title(title)
