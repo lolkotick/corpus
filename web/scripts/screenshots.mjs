@@ -25,6 +25,13 @@ const runAxe = args.includes('--axe');
 const DESKTOP = { width: 1360, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 
+/** Начать проверку выборки из 30 пар (seed по умолчанию) — для снимков режима «Проверка». */
+async function startReview(page) {
+  await page.getByLabel('Эксперт (имя или код)').fill('демо');
+  await page.getByRole('button', { name: 'Начать проверку' }).click();
+  await page.waitForTimeout(300);
+}
+
 /** name, hash-маршрут, тема, размер, снимок всей страницы, действия перед снимком. */
 const SHOTS = [
   { name: 'home', route: '/', theme: 'light', size: DESKTOP, full: true },
@@ -90,6 +97,56 @@ const SHOTS = [
     size: DESKTOP,
     full: true,
   },
+  { name: 'review-setup', route: '/review', theme: 'light', size: DESKTOP, full: false },
+  {
+    name: 'review',
+    route: '/review',
+    theme: 'light',
+    size: DESKTOP,
+    full: true,
+    actions: async (page) => {
+      await startReview(page);
+      // Выравнивание EN–ZH верно, EN–RU — исправить (матрица), артикли верны,
+      // 量词 — по одной, падежи — по одной с исправлением второй пометки.
+      await page.keyboard.press('1');
+      await page.keyboard.press('3');
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('1');
+      await page.keyboard.press('2');
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('2');
+      await page.keyboard.press('1');
+      await page.keyboard.press('3');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+    },
+  },
+  {
+    name: 'review-dark',
+    route: '/review',
+    theme: 'dark',
+    size: DESKTOP,
+    full: false,
+    actions: async (page) => {
+      await startReview(page);
+      await page.keyboard.press('1');
+      await page.keyboard.press('1');
+      await page.keyboard.press('2');
+      await page.waitForTimeout(300);
+    },
+  },
+  {
+    name: 'review-mobile',
+    route: '/review',
+    theme: 'light',
+    size: MOBILE,
+    full: false,
+    actions: async (page) => {
+      await startReview(page);
+      await page.waitForTimeout(300);
+    },
+  },
   { name: 'about', route: '/about', theme: 'light', size: DESKTOP, full: false },
   { name: 'pair-mobile', route: '/pair/example-018', theme: 'light', size: MOBILE, full: false },
   {
@@ -142,6 +199,11 @@ for (const shot of selected) {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(700);
   if (shot.actions) await shot.actions(page);
+  if (shot.full) {
+    // Иначе липкая шапка окажется посреди снимка всей страницы.
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await page.waitForTimeout(200);
+  }
   const file = resolve(outDir, `${shot.name}.png`);
   await page.screenshot({ path: file, fullPage: shot.full });
   console.log(`✓ ${shot.name} → ${file}`);
