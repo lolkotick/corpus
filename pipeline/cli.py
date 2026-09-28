@@ -6,6 +6,7 @@
     python -m pipeline check                 # проверить входные тексты без сборки
     python -m pipeline evaluate              # оценка разметки по data/gold/gold.json
     python -m pipeline compare-aligners      # сравнение методов выравнивания
+    python -m pipeline errors                # анализ ошибок по эталону
 """
 
 from __future__ import annotations
@@ -138,6 +139,18 @@ def cmd_compare_aligners(args: argparse.Namespace) -> int:
     return code
 
 
+def cmd_errors(args: argparse.Namespace) -> int:
+    from pipeline.error_analysis import run
+
+    config = load_config(Path(args.config) if args.config else None)
+    gold = Path(args.gold) if args.gold else config.path("gold")
+    out = Path(args.out) if args.out else config.path("reports")
+    code, files = run(gold, out, config.root)
+    for path in files:
+        print(f"  → {path}")
+    return code
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m pipeline",
                                      description="Pipeline учебного корпуса EN/ZH/RU")
@@ -171,6 +184,11 @@ def main(argv: list[str] | None = None) -> int:
     p_cmp.add_argument("--gold", help="файл эталона (по умолчанию data/gold/gold.json)")
     p_cmp.add_argument("--out", help="папка отчётов (по умолчанию reports)")
     p_cmp.set_defaults(func=cmd_compare_aligners)
+
+    p_err = sub.add_parser("errors", help="анализ ошибок разметки по золотому стандарту")
+    p_err.add_argument("--gold", help="файл эталона (по умолчанию data/gold/gold.json)")
+    p_err.add_argument("--out", help="папка отчётов (по умолчанию reports)")
+    p_err.set_defaults(func=cmd_errors)
 
     args = parser.parse_args(argv)
     _setup_logging(args.verbose)
