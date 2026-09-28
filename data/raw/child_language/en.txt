@@ -1,0 +1,9 @@
+By the age of five, most children have mastered the basic grammar of their native language without a single formal lesson. This achievement is all the more remarkable given that the speech they hear is often fragmentary and full of errors. How they manage it remains one of the central questions of linguistics.
+
+In the 1950s, Noam Chomsky argued that humans are born with an innate capacity for language, a kind of universal grammar. According to this view, a child does not learn grammar from scratch but sets the parameters of a system that is already present in the mind. Critics, however, point out that the theory is difficult to test empirically.
+
+An alternative approach emphasises the role of experience. Children, it is argued, are extraordinarily good at detecting statistical patterns in the speech around them. In one famous experiment, eight-month-old infants learned to pick out "words" from a stream of nonsense syllables after listening to it for only two minutes.
+
+Bilingual children offer a particularly interesting case. They do not simply acquire two separate systems; the two languages constantly interact. A Russian-speaking child learning English, for example, may at first omit articles, because Russian has no such category, while a Chinese-speaking child may struggle with the case endings of Russian nouns.
+
+Such observations are directly relevant to teachers. If certain errors are predictable, exercises can be designed to target precisely those areas where the learner's first language offers no support. A parallel corpus, which shows the same content in several languages at once, is one of the tools that make such contrasts visible.
