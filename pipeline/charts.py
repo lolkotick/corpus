@@ -244,3 +244,43 @@ def hbars(
     else:
         ax.set_title(title)
     return save(fig, path)
+
+
+def slope(
+    path: Path,
+    before: Sequence[float],
+    after: Sequence[float],
+    left: str,
+    right: str,
+    title: str,
+    ylim: tuple[float, float] = (0, 100),
+) -> Path:
+    """Парные значения «до → после»: линия на каждого участника, жирная — среднее."""
+    fig, ax = figure(height_cm=10, width_cm=10)
+    for a, b in zip(before, after, strict=True):
+        color = SERIES[0] if b > a else SERIES[1] if b < a else INK_SECONDARY
+        ax.plot([0, 1], [a, b], color=color, linewidth=1.2, alpha=0.55, marker="o",
+                markersize=4, zorder=2)
+    if before:
+        mean_a = sum(before) / len(before)
+        mean_b = sum(after) / len(after)
+        ax.plot([0, 1], [mean_a, mean_b], color=INK, linewidth=2.6, marker="o", markersize=7,
+                zorder=3, label="среднее")
+        for x, v, ha in ((0, mean_a, "right"), (1, mean_b, "left")):
+            ax.annotate(fmt(v, 1), (x, v), xytext=(-8 if ha == "right" else 8, 0),
+                        textcoords="offset points", ha=ha, va="center", fontsize=8,
+                        fontweight="bold")
+    ax.set_xticks([0, 1], [left, right])
+    ax.set_xlim(-0.35, 1.35)
+    ax.set_ylim(ylim[0] - 2, ylim[1] + 4)
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: fmt(v, 0)))
+    ax.set_title(title)
+    from matplotlib.lines import Line2D
+
+    ax.legend(handles=[
+        Line2D([0], [0], color=SERIES[0], lw=1.5, label="улучшение"),
+        Line2D([0], [0], color=SERIES[1], lw=1.5, label="снижение"),
+        Line2D([0], [0], color=INK_SECONDARY, lw=1.5, label="без изменений"),
+        Line2D([0], [0], color=INK, lw=2.6, label="среднее"),
+    ], loc="lower center", bbox_to_anchor=(0.5, -0.32), ncol=2, handlelength=1.4)
+    return save(fig, path)

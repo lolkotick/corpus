@@ -32,6 +32,13 @@ async function startReview(page) {
   await page.waitForTimeout(300);
 }
 
+/** Начать тест под демонстрационным кодом участника. */
+async function startTest(page) {
+  await page.getByLabel('Имя или код участника').fill('S01');
+  await page.getByRole('button', { name: /^Начать/ }).click();
+  await page.waitForTimeout(300);
+}
+
 /** name, hash-маршрут, тема, размер, снимок всей страницы, действия перед снимком. */
 const SHOTS = [
   { name: 'home', route: '/', theme: 'light', size: DESKTOP, full: true },
@@ -144,6 +151,53 @@ const SHOTS = [
     full: false,
     actions: async (page) => {
       await startReview(page);
+      await page.waitForTimeout(300);
+    },
+  },
+  { name: 'test-start', route: '/exercises/test', theme: 'light', size: DESKTOP, full: false },
+  {
+    name: 'test-task',
+    route: '/exercises/test',
+    theme: 'light',
+    size: DESKTOP,
+    full: false,
+    actions: async (page) => {
+      await startTest(page);
+      await page.keyboard.press('1');
+      await page.waitForTimeout(300);
+    },
+  },
+  {
+    name: 'test-result',
+    route: '/exercises/test',
+    theme: 'dark',
+    size: DESKTOP,
+    full: false,
+    actions: async (page) => {
+      await startTest(page);
+      for (let i = 0; i < 15; i += 1) {
+        const input = page.locator('#test-answer');
+        if ((await input.count()) > 0) {
+          await input.fill('ответ');
+          await input.press('Enter');
+        } else {
+          await page.keyboard.press(String((i % 3) + 1));
+        }
+        await page.waitForTimeout(80);
+      }
+      await page.waitForTimeout(300);
+    },
+  },
+  {
+    name: 'test-mobile',
+    route: '/exercises/test',
+    theme: 'light',
+    size: MOBILE,
+    full: false,
+    actions: async (page) => {
+      await startTest(page);
+      await page.keyboard.press('2');
+      await page.keyboard.press('1');
       await page.waitForTimeout(300);
     },
   },

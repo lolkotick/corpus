@@ -12,6 +12,7 @@ import { PairPage } from './pages/PairPage';
 import { PrintPage } from './pages/PrintPage';
 import { ReviewPage } from './pages/ReviewPage';
 import { SearchPage } from './pages/SearchPage';
+import { TestPage } from './pages/TestPage';
 
 // Графики (Recharts) нужны только на странице статистики — грузим её отдельным чанком.
 const StatsPage = lazy(async () => ({ default: (await import('./pages/StatsPage')).StatsPage }));
@@ -36,6 +37,7 @@ export function App() {
             />
             <Route path="exercises" element={<ExercisesPage />} />
             <Route path="exercises/print" element={<PrintPage />} />
+            <Route path="exercises/test" element={<TestPage />} />
             <Route path="review" element={<ReviewPage />} />
             <Route path="about" element={<AboutPage />} />
             <Route path="*" element={<NotFoundPage />} />

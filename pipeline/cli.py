@@ -7,6 +7,7 @@
     python -m pipeline evaluate              # оценка разметки по data/gold/gold.json
     python -m pipeline compare-aligners      # сравнение методов выравнивания
     python -m pipeline errors                # анализ ошибок по эталону
+    python -m pipeline approbation [CSV ...]  # результаты предтеста и посттеста
 """
 
 from __future__ import annotations
@@ -151,6 +152,18 @@ def cmd_errors(args: argparse.Namespace) -> int:
     return code
 
 
+def cmd_approbation(args: argparse.Namespace) -> int:
+    from pipeline.approbation import run
+
+    config = load_config(Path(args.config) if args.config else None)
+    sources = [Path(p) for p in args.sources] or [config.path("approbation")]
+    out = Path(args.out) if args.out else config.path("reports")
+    code, files = run(sources, out, config.root)
+    for path in files:
+        print(f"  → {path}")
+    return code
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m pipeline",
                                      description="Pipeline учебного корпуса EN/ZH/RU")
@@ -189,6 +202,12 @@ def main(argv: list[str] | None = None) -> int:
     p_err.add_argument("--gold", help="файл эталона (по умолчанию data/gold/gold.json)")
     p_err.add_argument("--out", help="папка отчётов (по умолчанию reports)")
     p_err.set_defaults(func=cmd_errors)
+
+    p_appr = sub.add_parser("approbation", help="анализ результатов режима «Тест»")
+    p_appr.add_argument("sources", nargs="*",
+                        help="CSV-файлы или папки (по умолчанию data/approbation)")
+    p_appr.add_argument("--out", help="папка отчётов (по умолчанию reports)")
+    p_appr.set_defaults(func=cmd_approbation)
 
     args = parser.parse_args(argv)
     _setup_logging(args.verbose)

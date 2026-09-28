@@ -189,6 +189,19 @@ function Setup({
       </form>
 
       <aside className="space-y-4">
+        <Link
+          to="/exercises/test"
+          className="group block rounded-2xl border border-rule bg-surface p-5 transition hover:border-rule-strong"
+        >
+          <p className="flex items-center justify-between font-semibold">
+            Режим «Тест» для апробации
+            <ArrowRightIcon size={16} className="text-muted transition group-hover:text-ink" />
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Предтест и посттест на двух наборах одинаковой сложности, без подсказок. Ответы, время и
+            ошибки выгружаются в CSV.
+          </p>
+        </Link>
         {resumable && !resumable.finished && (
           <div className="rounded-2xl border border-en/40 bg-en-tint p-5">
             <p className="font-semibold">Незавершённый набор</p>

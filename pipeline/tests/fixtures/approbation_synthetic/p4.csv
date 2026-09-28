@@ -1,0 +1,8 @@
+﻿# СИНТЕТИЧЕСКИЕ ДАННЫЕ ДЛЯ ТЕСТОВ pipeline/approbation.py — не результаты апробации
+participant;stage;attempt_id;set_id;started_at;finished_at;task_no;item_id;phenomenon;level;subtype;correct_answer;answer;correct;time_ms
+P4;pre;d1;A-syn;2026-09-01T10:00:00Z;2026-09-01T10:00:00Z;1;t-001:en1;article;A1;the;the;the;1;1000
+P4;pre;d1;A-syn;2026-09-01T10:00:00Z;2026-09-01T10:00:00Z;2;t-002:zh1;classifier;A2;специальное;本;本;1;2000
+P4;pre;d1;A-syn;2026-09-01T10:00:00Z;2026-09-01T10:00:00Z;3;t-003:ru1;case;B1;accs;книгу;книгу;1;3000
+P5;pre;e1;A-syn;2026-09-01T10:00:00Z;;1;t-001:en1;article;A1;the;the;the;1;1000
+P5;pre;e1;A-syn;2026-09-01T10:00:00Z;;2;t-002:zh1;classifier;A2;специальное;本;张;0;2000
+P5;pre;e1;A-syn;2026-09-01T10:00:00Z;;3;t-003:ru1;case;B1;accs;книгу;книгу;1;3000
