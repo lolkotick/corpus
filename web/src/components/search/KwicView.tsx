@@ -5,6 +5,7 @@ import { LANG_INFO, LANGS } from '../../lib/labels';
 import type { KwicLine, KwicSort } from '../../lib/search';
 import { cx, LANG_CLASSES } from '../../lib/styles';
 import { LangBadge } from '../ui';
+import { ScrollArea } from '../ScrollArea';
 
 const SORTS: { value: KwicSort; label: string }[] = [
   { value: 'position', label: 'по порядку в корпусе' },
@@ -69,7 +70,7 @@ export function KwicView({ lines, sort, kwicLang, onSort, onLang }: Props) {
         </label>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-rule bg-surface">
+      <ScrollArea label="Таблица конкорданса" className="rounded-2xl border border-rule bg-surface">
         <table className="w-full min-w-[34rem] border-collapse text-[15px]">
           <caption className="sr-only">
             Ключевое слово в центре, слева и справа — контекст. Ссылка ведёт к полной паре.
@@ -138,7 +139,7 @@ export function KwicView({ lines, sort, kwicLang, onSort, onLang }: Props) {
             })}
           </tbody>
         </table>
-      </div>
+      </ScrollArea>
     </section>
   );
 }

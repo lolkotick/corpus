@@ -49,5 +49,8 @@
     "eslint-plugin-jsx-a11y": {
       "eslint": "$eslint"
     }
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }

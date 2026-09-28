@@ -10,6 +10,7 @@ import {
 import { DataTable, StatTile } from '../components/charts/ChartParts';
 import { Container } from '../components/Container';
 import { DataGate } from '../components/DataGate';
+import { ScrollArea } from '../components/ScrollArea';
 import { PageHeader } from '../components/ui';
 import type { CorpusIndex } from '../data/corpusContext';
 import { formatInt, formatPercent } from '../lib/chartTheme';
@@ -137,7 +138,10 @@ function StatsContent({ stats, corpus, classifierByValue }: CorpusIndex) {
             <TextDensityChart key={lang} stats={stats} lang={lang} />
           ))}
         </div>
-        <div className="mt-5 overflow-x-auto rounded-2xl border border-rule bg-surface p-5 sm:p-6">
+        <ScrollArea
+          label="Показатели по текстам"
+          className="mt-5 rounded-2xl border border-rule bg-surface p-5 sm:p-6"
+        >
           <DataTable
             caption="Показатели по текстам"
             head={[
@@ -165,7 +169,7 @@ function StatsContent({ stats, corpus, classifierByValue }: CorpusIndex) {
               formatScore(text.mean_score),
             ])}
           />
-        </div>
+        </ScrollArea>
         <p className="mt-3 text-sm text-muted">
           Всего в корпусе {corpus.texts.length}{' '}
           {plural(corpus.texts.length, 'текст', 'текста', 'текстов')}. Полные данные —{' '}
