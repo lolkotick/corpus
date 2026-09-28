@@ -71,7 +71,7 @@ def write_csv(path: Path, records: list[dict[str, Any]], texts: dict[str, dict[s
             writer.writerow({
                 "id": r["id"],
                 "text_id": r["text_id"],
-                "level": texts.get(r["text_id"], {}).get("level", ""),
+                "level": r.get("level") or texts.get(r["text_id"], {}).get("level", ""),
                 "status": r["status"],
                 "en": r["en"],
                 "zh": r["zh"],
@@ -92,6 +92,72 @@ def _histogram(scores: list[float], bins: int) -> list[dict[str, Any]]:
         {"from": round(k / bins, 3), "to": round((k + 1) / bins, 3), "count": counts[k]}
         for k in range(bins)
     ]
+
+
+def register_stats(records: list[dict[str, Any]],
+                   texts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Сравнение регистров по трём явлениям: артикли, 量词, падежи."""
+    register_of = {t["id"]: t.get("register") or "учебный" for t in texts}
+    rows: dict[str, dict[str, Any]] = {}
+    for r in records:
+        reg = register_of.get(r["text_id"], "учебный")
+        row = rows.setdefault(reg, {
+            "register": reg, "texts": set(), "pairs": 0,
+            "words": {"en": 0, "zh": 0, "ru": 0}, "articles": Counter(),
+            "classifiers": Counter(), "cases": Counter(), "difficulty": [],
+        })
+        row["texts"].add(r["text_id"])
+        row["pairs"] += 1
+        row["words"]["en"] += count_words(r["en"])
+        row["words"]["zh"] += count_han(r["zh"])
+        row["words"]["ru"] += count_words(r["ru"])
+        if "difficulty" in r:
+            row["difficulty"].append(r["difficulty"])
+        for a in r["annotations"]["en"]:
+            row["articles"][a["value"]] += 1
+        for a in r["annotations"]["zh"]:
+            row["classifiers"][a["value"]] += 1
+        for a in r["annotations"]["ru"]:
+            row["cases"][a["case"]] += 1
+
+    def per(n: int, d: int) -> float:
+        return round(100 * n / d, 2) if d else 0.0
+
+    out = []
+    for reg, row in rows.items():
+        words, arts, cls, cases = row["words"], row["articles"], row["classifiers"], row["cases"]
+        n_arts, n_cls, n_nouns = sum(arts.values()), sum(cls.values()), sum(cases.values())
+        out.append({
+            "register": reg,
+            "texts": len(row["texts"]),
+            "pairs": row["pairs"],
+            "words": words,
+            "difficulty_mean": round(statistics.fmean(row["difficulty"]), 3)
+            if row["difficulty"] else None,
+            "articles": {
+                "counts": {k: arts.get(k, 0) for k in ("the", "a", "an")},
+                "per_100_words": per(n_arts, words["en"]),
+                "per_100_words_by_value": {k: per(arts.get(k, 0), words["en"])
+                                           for k in ("the", "a", "an")},
+            },
+            "classifiers": {
+                "count": n_cls,
+                "distinct": len(cls),
+                "per_100_chars": per(n_cls, words["zh"]),
+                "top": [{"value": v, "count": c, "share": per(c, n_cls)}
+                        for v, c in cls.most_common(8)],
+            },
+            "cases": {
+                "nouns": n_nouns,
+                "per_100_words": per(n_nouns, words["ru"]),
+                "distribution": [{"case": c, "label": CASE_LABELS.get(c, c),
+                                  "count": cases.get(c, 0), "share": per(cases.get(c, 0), n_nouns)}
+                                 for c in CASE_ORDER if c != "voct" or cases.get(c, 0)],
+            },
+        })
+    order = {"учебный": 0, "бытовой": 1, "официальный": 2}
+    out.sort(key=lambda row: (order.get(row["register"], 9), row["register"]))
+    return out
 
 
 def compute_stats(
@@ -176,6 +242,7 @@ def compute_stats(
             "title": meta["title"],
             "title_ru": meta.get("title_ru", ""),
             "level": meta["level"],
+            "register": meta.get("register") or "учебный",
             "pairs": t["pairs"],
             "articles": {k: t["articles"].get(k, 0) for k in ("the", "a", "an")},
             "classifiers": t["classifiers"],
@@ -193,9 +260,10 @@ def compute_stats(
             },
         })
 
-    levels: Counter[str] = Counter()
-    for row in text_rows:
-        levels[row["level"]] += row["pairs"]
+    # Уровни по парам: авторский уровень текста или оценка сложности импортированной пары.
+    text_level = {t["id"]: t["level"] for t in texts}
+    levels: Counter[str] = Counter(r.get("level") or text_level.get(r["text_id"], "")
+                                   for r in records)
 
     return {
         "generated_at": build["generated_at"],
@@ -250,6 +318,7 @@ def compute_stats(
             "histogram": _histogram(scores, bins),
         },
         "texts": text_rows,
+        "registers": register_stats(records, texts),
     }
 
 

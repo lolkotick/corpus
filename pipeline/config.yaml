@@ -79,3 +79,42 @@ llm:
 export:
   csv_delimiter: ","           # импорт умеет определять разделитель сам (, или ;)
   histogram_bins: 10
+
+difficulty:
+  # Границы условных уровней A1|A2|B1|B2|C1|C2 для оценки сложности (pipeline/difficulty.py).
+  # По умолчанию — калибровка по учебным текстам корпуса (см. README, «Оценка сложности»).
+  thresholds: [0.19, 0.22, 0.28, 0.345, 0.45]
+
+importers:
+  cache: data/sources          # скачанные выгрузки (в git не хранятся)
+  tatoeba:
+    limit: 500                 # сколько троек EN–ZH–RU взять (0 — все прошедшие фильтры)
+    seed: 2026                 # случайная выборка воспроизводима
+    filters:
+      en_words: [3, 25]        # длина английского предложения в словах
+      ru_words: [3, 25]
+      zh_chars: [4, 40]        # длина китайского предложения в иероглифах
+    # Адреса выгрузок (https://tatoeba.org/downloads); можно заменить на зеркало.
+    files:
+      eng: https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences_detailed.tsv.bz2
+      cmn: https://downloads.tatoeba.org/exports/per_language/cmn/cmn_sentences_detailed.tsv.bz2
+      rus: https://downloads.tatoeba.org/exports/per_language/rus/rus_sentences_detailed.tsv.bz2
+      links: https://downloads.tatoeba.org/exports/links.tar.bz2
+      cc0: https://downloads.tatoeba.org/exports/sentences_CC0.tar.bz2
+  un_corpus:
+    limit: 2000                # сколько троек взять из корпуса ООН
+    seed: 2026
+    max_lines: 1000000         # сколько первых строк файлов просматривать
+    # Прямая ссылка на архив .tar.gz с файлами *.en/*.zh/*.ru. Пусто — файлы кладутся
+    # вручную в data/sources/un_corpus/ (инструкция — в README и в сообщении команды).
+    url: ""
+    # Если url пуст — попарные выгрузки того же корпуса на OPUS (большие zip-архивы; скачиваются
+    # один раз в data/sources/un_corpus/ и читаются без распаковки). Уберите адреса, чтобы
+    # ничего не скачивать.
+    opus:
+      en-zh: https://object.pouta.csc.fi/OPUS-UNPC/v1.0/moses/en-zh.txt.zip
+      en-ru: https://object.pouta.csc.fi/OPUS-UNPC/v1.0/moses/en-ru.txt.zip
+    filters:
+      en_words: [3, 40]        # в официальных документах предложения длиннее
+      ru_words: [3, 40]
+      zh_chars: [4, 70]

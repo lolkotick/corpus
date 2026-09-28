@@ -1,0 +1,90 @@
+name: Импорт реальных данных
+
+# Скачивает открытые данные (Tatoeba, корпус ООН через OPUS), прогоняет pipeline и
+# коммитит результат в ту же ветку: data/raw/{tatoeba,un_corpus}, web/public/data,
+# logs, reports. Запуск: Actions → «Импорт реальных данных» → Run workflow (выберите ветку).
+# Если источник недоступен, шаг помечается предупреждением, остальное выполняется.
+on:
+  # Временный запуск для первого импорта в ветке PR (кнопка Run workflow появляется
+  # только после слияния в main). Убирается перед слиянием.
+  push:
+    branches: [claude/happy-knuth-sf3rr5-real-data]
+    paths: [.github/workflows/import.yml]
+  workflow_dispatch:
+    inputs:
+      tatoeba_limit:
+        description: "Tatoeba: сколько троек взять"
+        default: "500"
+      un_limit:
+        description: "ООН: сколько троек взять"
+        default: "2000"
+      un_max_lines:
+        description: "ООН: сколько первых строк файлов просматривать"
+        default: "1000000"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  import:
+    name: Импорт → сборка → отчёты
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      TATOEBA_LIMIT: ${{ inputs.tatoeba_limit || '500' }}
+      UN_LIMIT: ${{ inputs.un_limit || '2000' }}
+      UN_MAX_LINES: ${{ inputs.un_max_lines || '1000000' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pipeline/requirements*.txt
+      - name: Установка зависимостей
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r pipeline/requirements.txt
+          python -m spacy download en_core_web_sm
+      - name: Импорт Tatoeba
+        id: tatoeba
+        continue-on-error: true
+        run: python -m pipeline import tatoeba --limit "$TATOEBA_LIMIT"
+      - name: Импорт корпуса ООН
+        id: un
+        continue-on-error: true
+        run: python -m pipeline import un --limit "$UN_LIMIT" --max-lines "$UN_MAX_LINES"
+      - name: Сборка корпуса
+        run: python -m pipeline build --no-llm
+      - name: Отчёты для курсовой
+        run: python -m pipeline reports --no-llm
+      - name: Итоги
+        if: always()
+        run: |
+          {
+            echo "## Импорт реальных данных"
+            echo "- Tatoeba: ${{ steps.tatoeba.outcome }}"
+            echo "- Корпус ООН: ${{ steps.un.outcome }}"
+            for f in logs/import_*.md; do [ -f "$f" ] && { echo; cat "$f"; }; done
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.tatoeba.outcome }}" != "success" ]; then
+            echo "::warning::Импорт Tatoeba не выполнен — см. журнал шага"
+          fi
+          if [ "${{ steps.un.outcome }}" != "success" ]; then
+            echo "::warning::Импорт корпуса ООН не выполнен — см. журнал шага и README"
+          fi
+      - name: Коммит результатов
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/raw web/public/data logs reports
+          if git diff --cached --quiet; then
+            echo "Изменений нет"
+          else
+            git commit -m "Импорт реальных данных: Tatoeba и корпус ООН (workflow import.yml)"
+            git push
+          fi

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import bisect
 import logging
 import time
 from collections.abc import Iterator
@@ -15,6 +16,7 @@ from pipeline.annotate.en import annotate_en
 from pipeline.annotate.ru import annotate_ru
 from pipeline.annotate.zh import annotate_zh
 from pipeline.config import Config
+from pipeline.difficulty import DEFAULT_THRESHOLDS, estimate
 from pipeline.export import dump_json, write_outputs
 from pipeline.lexicon import build_links
 from pipeline.llm import LlmStats, review
@@ -91,6 +93,34 @@ def align_text(aligner: Any, raw: RawText, sentences: dict[str, list[list[str]]]
     return align_three(aligner, flat["en"], flat["zh"], flat["ru"]), "целиком"
 
 
+def paragraph_of(seg: AlignedSegment, sentences: dict[str, list[list[str]]]) -> int | None:
+    """Номер абзаца, к которому относится сегмент (по первому предложению любого языка)."""
+    for lang in LANGS:
+        ids = seg.sentence_ids(lang)
+        if ids:
+            starts, total = [], 0
+            for para in sentences[lang]:
+                starts.append(total)
+                total += len(para)
+            return bisect.bisect_right(starts, ids[0]) - 1
+    return None
+
+
+def pair_meta(raw: RawText, seg: AlignedSegment, sentences: dict[str, list[list[str]]],
+              thresholds: tuple[float, ...]) -> dict[str, Any]:
+    """Сложность пары; уровень — авторский уровень текста или (для импорта) по оценке;
+    для импортированных источников — происхождение тройки (units.jsonl)."""
+    d = estimate({lang: seg.text(lang) for lang in LANGS}, thresholds)
+    extra: dict[str, Any] = {"difficulty": d.score,
+                             "level": raw.meta.level if raw.units is None else d.level}
+    if raw.units is not None:
+        p = paragraph_of(seg, sentences)
+        if p is not None and 0 <= p < len(raw.units):
+            extra["origin"] = {k: v for k, v in raw.units[p].items()
+                               if k not in ("level", "difficulty")}
+    return extra
+
+
 def run_build(config: Config, use_llm: bool = True) -> BuildResult:
     result = BuildResult(started_at=datetime.now(UTC).isoformat(timespec="seconds"))
     t0 = time.perf_counter()
@@ -132,6 +162,8 @@ def run_build(config: Config, use_llm: bool = True) -> BuildResult:
             (align_config.get("low_score_threshold") or {}).get(aligner.method, 0.35)
         )
         records: list[dict[str, Any]] = []
+        thresholds = tuple(float(x) for x in config.get("difficulty.thresholds", [])) \
+            or DEFAULT_THRESHOLDS
         for raw in raw_texts:
             segments, mode = align_text(aligner, raw, sentences[raw.meta.id], use_paragraphs,
                                          result.warnings)
@@ -156,6 +188,7 @@ def run_build(config: Config, use_llm: bool = True) -> BuildResult:
                     "status": "auto",
                     "llm_note": None,
                     "comment": "",
+                    **pair_meta(raw, seg, sentences[raw.meta.id], thresholds),
                 })
             sents = sentences[raw.meta.id]
             result.text_rows.append({
