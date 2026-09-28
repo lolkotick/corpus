@@ -83,3 +83,21 @@ describe('ответы и CSV', () => {
     expect(csvFileName([attempt], now)).toBe('test_Анна_А__2026-09-28.csv');
   });
 });
+
+describe('наборы теста и импортированные данные', () => {
+  it('строятся только по учебным текстам', () => {
+    const raw: unknown = JSON.parse(
+      readFileSync(new URL('../../public/data/corpus.json', import.meta.url), 'utf-8'),
+    );
+    if (!isCorpus(raw)) throw new Error('corpus.json повреждён');
+    const imported = new Set(raw.pairs.filter((p) => p.origin).map((p) => p.id));
+    const sets = buildTestSets(raw);
+    const pairIds = [...sets.A.items, ...sets.B.items].map((i) => i.pairId);
+    expect(pairIds.some((id) => imported.has(id))).toBe(false);
+    // Добавление импортированных пар не меняет наборы.
+    const textbookOnly = { ...raw, pairs: raw.pairs.filter((p) => !p.origin) };
+    expect(buildTestSets(textbookOnly).A.items.map((i) => i.id)).toEqual(
+      sets.A.items.map((i) => i.id),
+    );
+  });
+});

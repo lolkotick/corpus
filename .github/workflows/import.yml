@@ -6,11 +6,6 @@ name: Импорт реальных данных
 # Если источник недоступен, шаг помечается предупреждением, остальное выполняется.
 # Итоги каждого импорта — в logs/import_*.md и в сводке запуска (Summary).
 on:
-  # Временный запуск для первого импорта в ветке PR (кнопка Run workflow появляется
-  # только после слияния в main). Убирается перед слиянием.
-  push:
-    branches: [claude/happy-knuth-sf3rr5-real-data]
-    paths: [.github/workflows/import.yml]
   workflow_dispatch:
     inputs:
       tatoeba_limit:

@@ -7,6 +7,7 @@ import { CloseIcon, FilterIcon, SearchIcon } from '../components/icons';
 import { FilterBar } from '../components/search/FilterBar';
 import { KwicView } from '../components/search/KwicView';
 import { ResultsColumns } from '../components/search/ResultsColumns';
+import { ShowMore } from '../components/search/ShowMore';
 import { EmptyState, PageHeader } from '../components/ui';
 import type { CorpusIndex } from '../data/corpusContext';
 import { plural } from '../lib/labels';
@@ -56,6 +57,8 @@ function SearchContent({ data }: { data: CorpusIndex }) {
   const stale = deferred !== params;
   const queryLang = detectLang(params.q);
   const lemmaUsed = results.some((r) => r.lemmaMatch);
+  // Новый запрос или сортировка — снова первые PAGE_SIZE результатов.
+  const pageKey = serializeParams(deferred).toString();
   const hasQuery = params.q.trim() !== '';
   const filterCount = activeFilterCount(params);
 
@@ -247,17 +250,21 @@ function SearchContent({ data }: { data: CorpusIndex }) {
         ) : params.mode === 'kwic' ? (
           hasQuery || params.phen ? (
             kwic.length > 0 ? (
-              <KwicView
-                lines={kwic}
-                sort={params.sort}
-                kwicLang={params.kwicLang}
-                onSort={(sort) => {
-                  update({ sort });
-                }}
-                onLang={(kwicLang) => {
-                  update({ kwicLang });
-                }}
-              />
+              <ShowMore key={pageKey} items={kwic}>
+                {(lines) => (
+                  <KwicView
+                    lines={lines}
+                    sort={params.sort}
+                    kwicLang={params.kwicLang}
+                    onSort={(sort) => {
+                      update({ sort });
+                    }}
+                    onLang={(kwicLang) => {
+                      update({ kwicLang });
+                    }}
+                  />
+                )}
+              </ShowMore>
             ) : (
               <EmptyState title="Нет вхождений на выбранном языке">
                 Выберите другой язык в настройках конкорданса.
@@ -270,7 +277,9 @@ function SearchContent({ data }: { data: CorpusIndex }) {
             </EmptyState>
           )
         ) : (
-          <ResultsColumns results={results} data={data} />
+          <ShowMore key={pageKey} items={results}>
+            {(visible) => <ResultsColumns results={visible} data={data} />}
+          </ShowMore>
         )}
       </div>
     </Container>
