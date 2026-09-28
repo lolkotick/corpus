@@ -39,6 +39,15 @@ async function startTest(page) {
   await page.waitForTimeout(300);
 }
 
+/** Прокрутить к заголовку раздела (под липкую шапку). */
+async function scrollToId(page, id) {
+  await page.evaluate((target) => {
+    const el = document.getElementById(target);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90 });
+  }, id);
+  await page.waitForTimeout(600);
+}
+
 /** name, hash-маршрут, тема, размер, снимок всей страницы, действия перед снимком. */
 const SHOTS = [
   { name: 'home', route: '/', theme: 'light', size: DESKTOP, full: true },
@@ -202,6 +211,41 @@ const SHOTS = [
     },
   },
   { name: 'about', route: '/about', theme: 'light', size: DESKTOP, full: false },
+  { name: 'sources', route: '/sources', theme: 'light', size: DESKTOP, full: true },
+  { name: 'sources-dark', route: '/sources', theme: 'dark', size: DESKTOP, full: false },
+  { name: 'sources-mobile', route: '/sources', theme: 'light', size: MOBILE, full: false },
+  {
+    name: 'stats-registers',
+    route: '/stats',
+    theme: 'light',
+    size: { width: 1360, height: 1300 },
+    full: false,
+    actions: (page) => scrollToId(page, 'registers'),
+  },
+  {
+    name: 'stats-registers-dark',
+    route: '/stats',
+    theme: 'dark',
+    size: { width: 1360, height: 1300 },
+    full: false,
+    actions: (page) => scrollToId(page, 'registers'),
+  },
+  {
+    name: 'pair-tatoeba',
+    route: '/pair/tatoeba-001',
+    theme: 'light',
+    size: DESKTOP,
+    full: false,
+    actions: (page) => scrollToId(page, 'source'),
+  },
+  {
+    name: 'pair-un',
+    route: '/pair/un_corpus-001',
+    theme: 'dark',
+    size: DESKTOP,
+    full: false,
+    actions: (page) => scrollToId(page, 'source'),
+  },
   { name: 'pair-mobile', route: '/pair/example-018', theme: 'light', size: MOBILE, full: false },
   {
     name: 'menu-mobile',

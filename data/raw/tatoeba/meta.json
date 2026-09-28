@@ -1,0 +1,16 @@
+{
+  "title": "Tatoeba: sentences with translations",
+  "title_ru": "Tatoeba: предложения с переводами",
+  "title_zh": "Tatoeba：例句及其翻译",
+  "source": "Tatoeba — открытая база предложений и переводов, составляемая участниками (https://tatoeba.org)",
+  "source_url": "https://tatoeba.org",
+  "license": "CC BY 2.0 FR (часть предложений — CC0 1.0)",
+  "license_url": "https://tatoeba.org/terms_of_use",
+  "attribution": "Для каждого предложения указаны автор (имя пользователя Tatoeba) и номер предложения со ссылкой на tatoeba.org",
+  "register": "бытовой",
+  "topic": "Бытовые предложения на разные темы",
+  "level": "A1",
+  "level_method": "медиана оценок сложности троек (pipeline/difficulty.py)",
+  "author": "",
+  "units": "500"
+}

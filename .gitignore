@@ -12,6 +12,7 @@ venv/
 
 # Временные файлы pipeline
 data/cache/
+data/sources/
 
 # Node / web
 node_modules/

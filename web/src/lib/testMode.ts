@@ -8,6 +8,7 @@
  * (the / a / an; 个 или специальное 量词; падеж), соседние по сложности задания
  * образуют пару, одно из пары (по seed) идёт в A, другое — в B. Наборы не
  * пересекаются по предложениям, поэтому посттест не повторяет предтест.
+ * Импортированные источники (Tatoeba, ООН) в наборы не входят.
  */
 import type { CaseCode, Corpus, Level, Phenomenon } from '../data/types';
 import { allItems, checkAnswer, isTrivialCase, type ExerciseItem } from './exercises';
@@ -90,7 +91,17 @@ function fingerprint(ids: readonly string[]): string {
   return hash.toString(16).padStart(8, '0').slice(0, 6);
 }
 
-export function buildTestSets(corpus: Corpus, perKind = TEST_PER_KIND): Record<'A' | 'B', TestSet> {
+/** Корпус для наборов теста — только учебные тексты: импорт новых данных не должен менять
+ *  предтест и посттест, пока идёт апробация. */
+export function testCorpus(corpus: Corpus): Corpus {
+  return { ...corpus, pairs: corpus.pairs.filter((pair) => !pair.origin) };
+}
+
+export function buildTestSets(
+  fullCorpus: Corpus,
+  perKind = TEST_PER_KIND,
+): Record<'A' | 'B', TestSet> {
+  const corpus = testCorpus(fullCorpus);
   const random = mulberry32(TEST_SEED);
   const cases = new Map<string, CaseCode>();
   const trivial = new Set<string>();

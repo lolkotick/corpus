@@ -90,3 +90,67 @@ def test_check_command(project, monkeypatch, capsys):
     monkeypatch.setattr("pipeline.cli.load_config", lambda path=None: project)
     assert main(["check"]) == 0
     assert "example" in capsys.readouterr().out
+
+
+@requires_spacy
+def test_build_with_imported_source(project):
+    """Импортированный источник (синтетические файлы ООН): происхождение, уровень и регистры."""
+    import shutil
+    from pathlib import Path
+
+    from pipeline.importers import un_corpus
+
+    src = project.root / "downloads"
+    src.mkdir()
+    fixtures = Path(__file__).parent / "fixtures" / "un_synthetic"
+    for lang in ("en", "zh", "ru"):
+        shutil.copy(fixtures / f"UNv1.0.testset.{lang}", src)
+    un_corpus.run(project.path("raw"), project.root / "cache", {}, source=src)
+    run_build(project, use_llm=False)
+    out = project.path("output")
+    corpus = json.loads((out / "corpus.json").read_text(encoding="utf-8"))
+    stats = json.loads((out / "stats.json").read_text(encoding="utf-8"))
+
+    imported = [p for p in corpus["pairs"] if p["text_id"] == "un_corpus"]
+    assert len(imported) == 4
+    assert [p["origin"]["line"] for p in imported] == [1, 3, 5, 6]
+    assert all(p["origin"]["source"] == "un_corpus" and "level" not in p["origin"]
+               for p in imported)
+    example = [p for p in corpus["pairs"] if p["text_id"] == "example"]
+    assert all("origin" not in p and p["level"] == "A2" for p in example)
+    assert all(0 <= p["difficulty"] <= 1 and p["level"] for p in corpus["pairs"])
+
+    texts = {t["id"]: t for t in corpus["texts"]}
+    assert texts["un_corpus"]["register"] == "официальный"
+    assert texts["example"]["register"] == "учебный"
+    registers = {r["register"]: r for r in stats["registers"]}
+    assert list(registers) == ["учебный", "официальный"]
+    official = registers["официальный"]
+    assert official["pairs"] == 4 and official["texts"] == 1
+    assert official["articles"]["counts"]["the"] >= 3
+    assert sum(c["count"] for c in official["cases"]["distribution"]) == \
+        official["cases"]["nouns"]
+    assert sum(stats["levels"].values()) == stats["totals"]["pairs"]
+
+    with open(out / "attribution.csv", encoding="utf-8-sig") as fh:
+        rows = list(csv.DictReader(fh))
+    assert len(rows) == 4 and {r["author"] for r in rows} == {"United Nations"}
+    assert rows[0]["file"] == "UNv1.0.testset" and rows[0]["line"] == "1"
+
+
+def test_units_must_match_paragraphs(tmp_path):
+    import pytest
+
+    from pipeline.sources import SourceError, read_text
+
+    d = tmp_path / "src"
+    d.mkdir()
+    for lang, text in (("en", "One.\n\nTwo."), ("zh", "一。\n\n二。"), ("ru", "Один.\n\nДва.")):
+        (d / f"{lang}.txt").write_text(text, encoding="utf-8")
+    (d / "meta.json").write_text(json.dumps({"title": "t", "source": "s", "topic": "t",
+                                             "level": "A1"}), encoding="utf-8")
+    (d / "units.jsonl").write_text('{"n": 1}\n', encoding="utf-8")
+    with pytest.raises(SourceError, match="повторите импорт"):
+        read_text(d)
+    (d / "units.jsonl").write_text('{"n": 1}\n{"n": 2}\n', encoding="utf-8")
+    assert [u["n"] for u in read_text(d).units or []] == [1, 2]

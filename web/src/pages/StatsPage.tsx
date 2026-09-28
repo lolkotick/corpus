@@ -8,6 +8,7 @@ import {
   TextDensityChart,
 } from '../components/charts/StatsCharts';
 import { DataTable, StatTile } from '../components/charts/ChartParts';
+import { RegisterComparison } from '../components/charts/RegisterCharts';
 import { Container } from '../components/Container';
 import { DataGate } from '../components/DataGate';
 import { ScrollArea } from '../components/ScrollArea';
@@ -123,6 +124,24 @@ function StatsContent({ stats, corpus, classifierByValue }: CorpusIndex) {
             </div>
           </div>
         </div>
+      </section>
+
+      <section aria-labelledby="registers" className="mt-14">
+        <h2 id="registers" className="font-serif text-[28px] font-semibold">
+          Сравнение регистров
+        </h2>
+        <p className="mt-2 max-w-3xl text-muted">
+          Учебные тексты проекта, бытовые предложения Tatoeba и официальные документы ООН. Все
+          показатели нормированы на объём регистра; откуда данные — на странице{' '}
+          <Link
+            to="/sources"
+            className="underline decoration-rule-strong underline-offset-4 hover:decoration-ink"
+          >
+            «Источники»
+          </Link>
+          .
+        </p>
+        <RegisterComparison stats={stats} />
       </section>
 
       <section aria-labelledby="texts" className="mt-14">

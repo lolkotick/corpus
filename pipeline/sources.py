@@ -6,9 +6,11 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 LANGS = ("en", "zh", "ru")
 LEVELS = ("A1", "A2", "B1", "B2", "C1", "C2")
+DEFAULT_REGISTER = "учебный"
 _BLANK_LINE = re.compile(r"\n\s*\n")
 
 
@@ -38,9 +40,14 @@ class TextMeta:
             "topic": self.topic,
             "level": self.level,
             "author": self.author,
+            "register": DEFAULT_REGISTER,
         }
         data.update(self.extra)
         return data
+
+    @property
+    def register(self) -> str:
+        return self.extra.get("register") or DEFAULT_REGISTER
 
 
 @dataclass
@@ -48,6 +55,8 @@ class RawText:
     meta: TextMeta
     # Абзацы каждого языка (после нормализации пробелов).
     paragraphs: dict[str, list[str]]
+    # Для импортированных источников — сведения о каждом абзаце-тройке (units.jsonl).
+    units: list[dict[str, Any]] | None = None
 
 
 def normalize_text(text: str) -> str:
@@ -109,7 +118,28 @@ def read_text(text_dir: Path) -> RawText:
         paragraphs[lang] = split_paragraphs(path.read_text(encoding="utf-8-sig"), lang)
         if not paragraphs[lang]:
             raise SourceError(f"{text_dir.name}: файл {lang}.txt пустой")
-    return RawText(meta=meta, paragraphs=paragraphs)
+    return RawText(meta=meta, paragraphs=paragraphs, units=read_units(text_dir, paragraphs))
+
+
+def read_units(text_dir: Path, paragraphs: dict[str, list[str]]) -> list[dict[str, Any]] | None:
+    """units.jsonl импортированного источника: строка на абзац (тройку предложений)."""
+    path = text_dir / "units.jsonl"
+    if not path.exists():
+        return None
+    units = []
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            units.append(json.loads(line))
+        except json.JSONDecodeError as exc:
+            raise SourceError(f"{path}: строка {n} — некорректный JSON ({exc})") from exc
+    counts = {len(paragraphs[lang]) for lang in LANGS}
+    if counts != {len(units)}:
+        raise SourceError(f"{path}: {len(units)} строк, а абзацев в {text_dir.name}/*.txt — "
+                          + "/".join(str(len(paragraphs[lang])) for lang in LANGS)
+                          + "; повторите импорт")
+    return units
 
 
 def discover_texts(raw_dir: Path) -> list[Path]:

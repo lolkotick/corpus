@@ -31,6 +31,97 @@ def _rel(path: Path, root: Path) -> str:
         return str(path)
 
 
+def _origin_note(texts: list[dict[str, Any]]) -> list[str]:
+    registers = Counter(t.get("register") or "учебный" for t in texts)
+    notes = []
+    if registers.get("учебный"):
+        notes.append("Учебные тексты корпуса составлены и переведены с помощью ИИ для "
+                     "демонстрации метода (указано в `data/raw/*/meta.json`).")
+    imported = [t for t in texts if (t.get("register") or "учебный") != "учебный"]
+    if imported:
+        notes.append("Импортированные источники: " + "; ".join(
+            f"{t.get('title_ru') or t['title']} — {t.get('license', 'лицензия не указана')}"
+            for t in imported) + " (подробно — страница «Источники» на сайте).")
+    return [" ".join(notes)] if notes else []
+
+
+def _register_section(stats: dict[str, Any]) -> list[str]:
+    registers = stats.get("registers") or []
+    if len(registers) < 2:
+        return []
+    rows = [[r["register"], r["texts"], r["pairs"], r["articles"]["per_100_words"],
+             r["classifiers"]["per_100_chars"], r["cases"]["per_100_words"],
+             r["difficulty_mean"]] for r in registers]
+    codes = [c for c in CASE_SHORT if any(d["case"] == c and d["count"]
+                                          for r in registers for d in r["cases"]["distribution"])]
+    case_rows = [[r["register"], *[next((d["share"] for d in r["cases"]["distribution"]
+                                         if d["case"] == c), 0.0) for c in codes]]
+                 for r in registers]
+    top_rows = [[r["register"], ", ".join(f"{c['value']} {charts.fmt(c['share'], 1)} %"
+                                          for c in r["classifiers"]["top"][:5]) or "—"]
+                for r in registers]
+    return [
+        "## Регистры",
+        "",
+        "Показатели нормированы на объём регистра: артикли — на 100 слов EN, 量词 — на 100 "
+        "иероглифов ZH, существительные — на 100 слов RU; сложность — средняя оценка пар "
+        "(0–1, см. «Оценка сложности»).",
+        "",
+        md_table(["Регистр", "Текстов", "Пар", "Артиклей на 100 слов", "量词 на 100 иероглифов",
+                  "Сущ. RU на 100 слов", "Сложность"], rows, digits=2, text_columns=[0]),
+        "",
+        "Распределение падежей (доля среди существительных регистра, %):",
+        "",
+        md_table(["Регистр", *[CASE_SHORT[c] for c in codes]], case_rows, digits=1,
+                 text_columns=[0]),
+        "",
+        "Самые частые 量词 (доля среди конструкций регистра):",
+        "",
+        md_table(["Регистр", "量词"], top_rows, text_columns=[0, 1]),
+        "",
+    ]
+
+
+def _difficulty_section(corpus: dict[str, Any]) -> list[str]:
+    """Калибровка оценки сложности на учебных текстах и распределение уровней по регистрам."""
+    import statistics
+
+    texts = {t["id"]: t for t in corpus["texts"]}
+    by_level: dict[str, list[float]] = {}
+    levels_by_register: dict[str, Counter[str]] = {}
+    for pair in corpus["pairs"]:
+        if "difficulty" not in pair:
+            continue
+        text = texts.get(pair["text_id"], {})
+        register = text.get("register") or "учебный"
+        levels_by_register.setdefault(register, Counter())[pair.get("level", "")] += 1
+        if register == "учебный" and not pair.get("origin"):
+            by_level.setdefault(text.get("level", ""), []).append(pair["difficulty"])
+    if not by_level:
+        return []
+    calib = [[level, len(v), statistics.median(v), min(v), max(v)]
+             for level, v in sorted(by_level.items())]
+    all_levels = sorted({lv for c in levels_by_register.values() for lv in c})
+    dist = [[reg, *[c.get(lv, 0) for lv in all_levels]] for reg, c in levels_by_register.items()]
+    return [
+        "## Оценка сложности",
+        "",
+        "Оценка пары = среднее по трём языкам от 0,5 · min(длина / L, 1) + 0,5 · доля слов с "
+        "частотностью ниже Zipf 4 (wordfreq); L = 30 слов EN, 30 слов ZH, 25 слов RU. Границы "
+        "уровней — середины между медианами оценок учебных текстов с уровнем, заданным "
+        "автором (таблица ниже). Уровень учебной пары — уровень её текста; импортированной — "
+        "по оценке.",
+        "",
+        md_table(["Уровень текста", "Пар", "Медиана оценки", "Мин.", "Макс."], calib, digits=3,
+                 text_columns=[0]),
+        "",
+        "Пары по уровням и регистрам:",
+        "",
+        md_table(["Регистр", *all_levels], dist, text_columns=[0]),
+        "",
+    ]
+
+
 def build(corpus: dict[str, Any], stats: dict[str, Any], out: Path, root: Path) -> list[Path]:
     out.mkdir(parents=True, exist_ok=True)
     files: list[Path] = []
@@ -147,8 +238,7 @@ def build(corpus: dict[str, Any], stats: dict[str, Any], out: Path, root: Path) 
         f"- Ручная проверка: проверено {totals['status']['checked']}, исправлено "
         f"{totals['status']['corrected']}, автоматически {totals['status']['auto']}.",
         "",
-        "Тексты корпуса составлены и переведены с помощью ИИ для демонстрации метода "
-        "(указано в `data/raw/*/meta.json`).",
+        *_origin_note(texts),
         "",
         "## Тексты",
         "",
@@ -181,6 +271,8 @@ def build(corpus: dict[str, Any], stats: dict[str, Any], out: Path, root: Path) 
             f"{h['lemma']} ({h['count']})" for h in stats["articles"]["top_heads"]["a/an"][:8])
         + ".",
         "",
+        *_register_section(stats),
+        *_difficulty_section(corpus),
         "## Выравнивание",
         "",
         md_table(["Тип (EN–ZH–RU)", "Пар"],

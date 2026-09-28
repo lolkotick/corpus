@@ -13,6 +13,7 @@ const NAV_ITEMS: readonly { to: string; label: string; end?: boolean }[] = [
   { to: '/stats', label: 'Статистика' },
   { to: '/exercises', label: 'Упражнения' },
   { to: '/review', label: 'Проверка' },
+  { to: '/sources', label: 'Источники' },
   { to: '/about', label: 'О проекте' },
 ];
 

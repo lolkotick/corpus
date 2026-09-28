@@ -3,6 +3,8 @@
     python -m pipeline build                 # полная сборка корпуса
     python -m pipeline build --no-llm        # без запросов к LLM
     python -m pipeline import-csv FILE.csv   # импорт ручных правок и пересборка
+    python -m pipeline import tatoeba        # импорт троек EN/ZH/RU из Tatoeba
+    python -m pipeline import un             # импорт фрагмента корпуса ООН
     python -m pipeline check                 # проверить входные тексты без сборки
     python -m pipeline evaluate              # оценка разметки по data/gold/gold.json
     python -m pipeline compare-aligners      # сравнение методов выравнивания
@@ -88,6 +90,59 @@ def cmd_import_csv(args: argparse.Namespace) -> int:
     print(f"Правки сохранены в {overrides_path.relative_to(config.root)}; пересобираю корпус…")
     result = run_build(config, use_llm=not args.no_llm)
     _print_summary(result)
+    return 0
+
+
+def cmd_import(args: argparse.Namespace) -> int:
+    from pipeline.importers.common import ImportFailed
+
+    config = load_config(Path(args.config) if args.config else None)
+    cache = config.resolve(str(config.get("importers.cache", "data/sources")))
+    thresholds = tuple(float(x) for x in config.get("difficulty.thresholds", [])) or None
+    extra = {"thresholds": thresholds} if thresholds else {}
+    try:
+        if args.source == "tatoeba":
+            from pipeline.importers import tatoeba
+
+            path, stats = tatoeba.run(
+                config.path("raw"), cache / "tatoeba", config.get("importers.tatoeba", {}) or {},
+                limit=args.limit, seed=args.seed,
+                from_dir=Path(args.from_path) if args.from_path else None,
+                require_phenomenon=not args.any_sentence, **extra)
+        else:
+            from pipeline.importers import un_corpus
+
+            path, stats = un_corpus.run(
+                config.path("raw"), cache / "un_corpus",
+                config.get("importers.un_corpus", {}) or {},
+                limit=args.limit, seed=args.seed,
+                source=Path(args.from_path) if args.from_path else None,
+                max_lines=args.max_lines, require_phenomenon=not args.any_sentence, **extra)
+    except ImportFailed as exc:
+        print(f"Импорт не выполнен: {exc}", file=sys.stderr)
+        return 1
+    print(f"{args.source}: {stats.summary()}")
+    for note in stats.notes:
+        print(f"  · {note}")
+    try:
+        shown = path.relative_to(config.root)
+    except ValueError:
+        shown = path
+    log_path = config.path("logs") / f"import_{args.source}.md"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    from datetime import UTC, datetime
+
+    log_path.write_text(
+        f"# Импорт: {args.source}\n\n"
+        f"- Дата: {datetime.now(UTC).isoformat(timespec='seconds')}\n"
+        f"- Параметры: limit={args.limit or 'из config.yaml'}, "
+        f"seed={args.seed or 'из config.yaml'}, from={args.from_path or '—'}, "
+        f"max_lines={args.max_lines or 'из config.yaml'}, "
+        f"только с целевыми явлениями: {'нет' if args.any_sentence else 'да'}\n"
+        f"- Результат: {stats.summary()}\n"
+        + "".join(f"- {note}\n" for note in stats.notes)
+        + f"- Записано в: {shown}\n", encoding="utf-8")
+    print(f"Записано в {shown}. Пересоберите корпус: python -m pipeline build --no-llm")
     return 0
 
 
@@ -202,6 +257,19 @@ def main(argv: list[str] | None = None) -> int:
     p_import.add_argument("--dry-run", action="store_true", help="только показать изменения")
     p_import.add_argument("--no-llm", action="store_true")
     p_import.set_defaults(func=cmd_import_csv)
+
+    p_src = sub.add_parser("import", help="импорт реальных данных: tatoeba или un (корпус ООН)")
+    p_src.add_argument("source", choices=["tatoeba", "un"])
+    p_src.add_argument("--limit", type=int,
+                       help="сколько троек взять (по умолчанию из config.yaml: 500 / 2000)")
+    p_src.add_argument("--seed", type=int, help="seed случайной выборки (по умолчанию 2026)")
+    p_src.add_argument("--from", "--from-dir", dest="from_path",
+                       help="папка со скачанными вручную файлами (для un — также архив .tar.gz)")
+    p_src.add_argument("--max-lines", type=int,
+                       help="un: сколько первых строк файлов просматривать")
+    p_src.add_argument("--any-sentence", action="store_true",
+                       help="не требовать ни одного из трёх целевых явлений")
+    p_src.set_defaults(func=cmd_import)
 
     p_check = sub.add_parser("check", help="проверить входные тексты")
     p_check.set_defaults(func=cmd_check)

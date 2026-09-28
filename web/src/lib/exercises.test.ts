@@ -153,3 +153,42 @@ describe('проверка ответа', () => {
     expect(cl && checkAnswer(cl, cl.options.find((o) => o !== cl.answer) ?? '')).toBe(false);
   });
 });
+
+describe('уровень заданий', () => {
+  it('берётся из пары, если он у неё есть', () => {
+    const pair = corpus.pairs.find((p) => p.annotations.en.length > 0);
+    if (!pair) throw new Error('нет пар с артиклями');
+    const patched: Corpus = {
+      ...corpus,
+      pairs: corpus.pairs.map((p) => (p.id === pair.id ? { ...p, level: 'C2' as const } : p)),
+    };
+    const items = allItems(patched, 1).filter((i) => i.pairId === pair.id);
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.every((i) => i.level === 'C2')).toBe(true);
+  });
+});
+
+describe('артикли прописными', () => {
+  it('варианты повторяют написание ответа (THE → A / AN / THE)', () => {
+    const pair = corpus.pairs.find((p) =>
+      p.annotations.en.some((a) => !a.disputed && a.head !== null),
+    );
+    const ann = pair?.annotations.en.find((a) => !a.disputed && a.head !== null);
+    if (!pair || !ann) throw new Error('нет пар с артиклями');
+    const upper = ann.text.toUpperCase();
+    const en = pair.en.slice(0, ann.start) + upper + pair.en.slice(ann.end);
+    const patched: Corpus = {
+      ...corpus,
+      pairs: [
+        {
+          ...pair,
+          en,
+          annotations: { ...pair.annotations, en: [{ ...ann, text: upper }] },
+        },
+      ],
+    };
+    const item = allItems(patched, 1).find((i) => i.kind === 'article');
+    expect(item?.answer).toBe(upper);
+    expect(item?.options).toContain(upper);
+  });
+});
