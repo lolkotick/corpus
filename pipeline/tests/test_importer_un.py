@@ -79,6 +79,11 @@ def test_opus_pairs_are_joined_by_english(tmp_path):
     zh = (path / "zh.txt").read_text(encoding="utf-8").split("\n\n")
     ru = (path / "ru.txt").read_text(encoding="utf-8").split("\n\n")
     assert zh[1].strip() == "两名专家出席了会议。"
+    # Сущности Moses (&quot;) декодированы, пробел перед точкой убран.
+    en = (path / "en.txt").read_text(encoding="utf-8").split("\n\n")
+    assert en[0] == 'The Council decided to extend the mandate of the mission " UNMIK ".'
+    assert ru[0] == 'Совет постановил продлить мандат миссии " МООНК ".'
+    assert "&" not in (path / "ru.txt").read_text(encoding="utf-8")
     assert ru[1].strip() == "В сессии приняли участие два эксперта."
 
 
@@ -100,6 +105,14 @@ def test_opus_zip_download(tmp_path):
         ["en-ru.txt.zip", "en-zh.txt.zip"]
     _, stats = un_corpus.run(tmp_path / "raw", tmp_path / "cache", {})
     assert stats.written == 2
+
+
+def test_opus_text():
+    assert un_corpus.opus_text("It &apos;s the Council &apos;s view ( see annex ) .\n") == \
+        "It's the Council's view (see annex)."
+    assert un_corpus.opus_text("the respondents &apos; lawyers don &apos;t agree") == \
+        "the respondents' lawyers don't agree"
+    assert un_corpus.opus_text("AT &amp; T") == "AT & T"
 
 
 def test_sentence_check():

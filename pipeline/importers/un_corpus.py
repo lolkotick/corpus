@@ -27,7 +27,9 @@ UNPC.en-ru.en / .ru). Они выровнены отдельно для кажд
 
 from __future__ import annotations
 
+import html
 import io
+import re
 import tarfile
 import zipfile
 from collections.abc import Iterable, Iterator, Sequence
@@ -216,6 +218,21 @@ def _lines(member: Member) -> Iterator[Iterator[str]]:
         yield io.TextIOWrapper(raw, encoding="utf-8-sig")
 
 
+_SPACE_BEFORE = re.compile(r" +([.,;:!?%)\]])")
+_SPACE_AFTER = re.compile(r"([(\[]) +")
+_POSSESSIVE = re.compile(r"(\w) '(s|t|re|ve|ll|d|m)\b")  # It 's → It's, don 't → don't
+_PLURAL_POSSESSIVE = re.compile(r"(\ws) ' (?=\w)")  # respondents ' lawyers → respondents'
+
+
+def opus_text(line: str) -> str:
+    """Строка Moses-файла OPUS: сущности (&quot; &apos; &amp;) → символы; убираются пробелы,
+    которые токенизация Moses ставит перед знаками препинания, после открывающей скобки и
+    вокруг апострофа (It 's → It's). Другие изменения текста не вносятся."""
+    text = clean(html.unescape(line))
+    text = _PLURAL_POSSESSIVE.sub(r"\1' ", _POSSESSIVE.sub(r"\1'\2", text))
+    return _SPACE_AFTER.sub(r"\1", _SPACE_BEFORE.sub(r"\1", text))
+
+
 def iter_opus_units(pairs: dict[str, tuple[Member, Member]], max_lines: int,
                     stats: ImportStats | None = None) -> Iterator[Unit]:
     """Тройки по совпадающему английскому предложению в парах EN–ZH и EN–RU.
@@ -228,24 +245,24 @@ def iter_opus_units(pairs: dict[str, tuple[Member, Member]], max_lines: int,
     en_src, zh_src = pairs["en-zh"]
     with _lines(en_src) as fe, _lines(zh_src) as fz:
         for n, (en, zh) in enumerate(islice(zip(fe, fz, strict=False), max_lines), start=1):
-            key = clean(en)
+            key = opus_text(en)
             if not key:
                 continue
             if key in zh_of:
                 repeated.add(key)
             else:
-                zh_of[key] = (n, clean(zh))
+                zh_of[key] = (n, opus_text(zh))
     en_src, ru_src = pairs["en-ru"]
     ru_of: dict[str, tuple[int, str]] = {}
     with _lines(en_src) as fe, _lines(ru_src) as fr:
         for n, (en, ru) in enumerate(islice(zip(fe, fr, strict=False), max_lines), start=1):
-            key = clean(en)
+            key = opus_text(en)
             if key not in zh_of:
                 continue
             if key in ru_of:
                 repeated.add(key)
             else:
-                ru_of[key] = (n, clean(ru))
+                ru_of[key] = (n, opus_text(ru))
     if stats is not None:
         stats.notes.append(f"пропущено английских строк, повторяющихся в файлах: "
                            f"{len(repeated & ru_of.keys())}")

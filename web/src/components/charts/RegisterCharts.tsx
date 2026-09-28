@@ -18,7 +18,10 @@ const LABEL_STYLE = { fill: 'var(--muted)', fontSize: 12 } as const;
 const BAR = { maxBarSize: 26, stroke: SURFACE, strokeWidth: 2 } as const;
 
 function num(value: number, digits = 1): string {
-  return value.toLocaleString('ru-RU', { maximumFractionDigits: digits });
+  return value.toLocaleString('ru-RU', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
 }
 
 /** Показатель по регистрам: горизонтальные столбцы цвета языка, подпись — регистр. */
