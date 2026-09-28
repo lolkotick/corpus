@@ -63,8 +63,13 @@ def _stage(result: BuildResult, name: str) -> Iterator[Stage]:
         log.info("  %s: %.2f с %s", name, stage.seconds, stage.detail)
 
 
-def _align_text(aligner: Any, raw: RawText, sentences: dict[str, list[list[str]]],
+def align_text(aligner: Any, raw: RawText, sentences: dict[str, list[list[str]]],
                 use_paragraphs: bool, warnings: list[str]) -> tuple[list[AlignedSegment], str]:
+    """Выровнять текст: по абзацам, если их число совпадает во всех языках, иначе целиком.
+
+    Номера предложений в сегментах — сквозные по тексту. Используется и сборкой,
+    и сравнением методов (compare_aligners.py), чтобы условия были одинаковыми.
+    """
     counts = {lang: len(sentences[lang]) for lang in LANGS}
     if use_paragraphs and len(set(counts.values())) == 1:
         segments: list[AlignedSegment] = []
@@ -128,7 +133,7 @@ def run_build(config: Config, use_llm: bool = True) -> BuildResult:
         )
         records: list[dict[str, Any]] = []
         for raw in raw_texts:
-            segments, mode = _align_text(aligner, raw, sentences[raw.meta.id], use_paragraphs,
+            segments, mode = align_text(aligner, raw, sentences[raw.meta.id], use_paragraphs,
                                          result.warnings)
             types: dict[str, int] = {}
             for n, seg in enumerate(segments, start=1):

@@ -5,6 +5,7 @@
     python -m pipeline import-csv FILE.csv   # импорт ручных правок и пересборка
     python -m pipeline check                 # проверить входные тексты без сборки
     python -m pipeline evaluate              # оценка разметки по data/gold/gold.json
+    python -m pipeline compare-aligners      # сравнение методов выравнивания
 """
 
 from __future__ import annotations
@@ -123,6 +124,20 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     return code
 
 
+def cmd_compare_aligners(args: argparse.Namespace) -> int:
+    from pipeline.compare_aligners import METHODS, run
+
+    config = load_config(Path(args.config) if args.config else None)
+    gold = Path(args.gold) if args.gold else config.path("gold")
+    out = Path(args.out) if args.out else config.path("reports")
+    methods = [m.strip() for m in args.methods.split(",") if m.strip()] if args.methods \
+        else list(METHODS)
+    code, files = run(config, gold, out, methods)
+    for path in files:
+        print(f"  → {path}")
+    return code
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m pipeline",
                                      description="Pipeline учебного корпуса EN/ZH/RU")
@@ -149,6 +164,13 @@ def main(argv: list[str] | None = None) -> int:
     p_eval.add_argument("--corpus", help="corpus.json (по умолчанию web/public/data/corpus.json)")
     p_eval.add_argument("--out", help="папка отчётов (по умолчанию reports)")
     p_eval.set_defaults(func=cmd_evaluate)
+
+    p_cmp = sub.add_parser("compare-aligners", help="сравнить методы выравнивания")
+    p_cmp.add_argument("--methods", help="через запятую: bertalign,labse,gale_church,llm,"
+                                         "diagonal (по умолчанию все)")
+    p_cmp.add_argument("--gold", help="файл эталона (по умолчанию data/gold/gold.json)")
+    p_cmp.add_argument("--out", help="папка отчётов (по умолчанию reports)")
+    p_cmp.set_defaults(func=cmd_compare_aligners)
 
     args = parser.parse_args(argv)
     _setup_logging(args.verbose)

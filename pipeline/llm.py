@@ -169,16 +169,18 @@ def _cache_key(model: str, effort: str, prompt: str) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:32]
 
 
-def _call_claude(client: Any, model: str, effort: str, prompt: str) -> dict[str, Any]:
+def _call_claude(client: Any, model: str, effort: str, prompt: str,
+                 system: str = SYSTEM_PROMPT,
+                 schema: dict[str, Any] | None = None) -> dict[str, Any]:
     response = client.beta.messages.create(
         model=model,
         max_tokens=16000,
-        system=SYSTEM_PROMPT,
+        system=system,
         messages=[{"role": "user", "content": prompt}],
         thinking={"type": "adaptive"},
         output_config={
             "effort": effort,
-            "format": {"type": "json_schema", "schema": RESPONSE_SCHEMA},
+            "format": {"type": "json_schema", "schema": schema or RESPONSE_SCHEMA},
         },
         betas=[FALLBACK_BETA],
         fallbacks="default",
@@ -196,11 +198,12 @@ def _call_claude(client: Any, model: str, effort: str, prompt: str) -> dict[str,
 
 
 def _request(
-    anthropic: Any, client: Any, model: str, effort: str, prompt: str
+    anthropic: Any, client: Any, model: str, effort: str, prompt: str,
+    system: str = SYSTEM_PROMPT, schema: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any] | None, str, bool]:
-    """Запрос к API: (результат, текст ошибки, нужно ли остановить проверку)."""
+    """Запрос к API: (результат, текст ошибки, нужно ли остановить работу)."""
     try:
-        return _call_claude(client, model, effort, prompt), "", False
+        return _call_claude(client, model, effort, prompt, system, schema), "", False
     except (anthropic.AuthenticationError, anthropic.PermissionDeniedError) as exc:
         return None, f"ключ API не принят: {exc.__class__.__name__}", True
     except anthropic.NotFoundError:

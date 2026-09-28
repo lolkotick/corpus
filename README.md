@@ -70,6 +70,7 @@ pipeline/                     Python 3.11: тексты → корпус
   manual.py, llm.py           ручные правки из CSV, LLM-проверка
   export.py, report.py        corpus.json / corpus.csv / stats.json, журнал сборки
   gold.py, evaluate.py        золотой стандарт и оценка качества (P / R / F1)
+  compare_aligners.py         сравнение методов выравнивания (align/baseline.py, llm_align.py)
   metrics.py, charts.py, tables.py  метрики, графики PNG и таблицы CSV для отчётов
   resources/zh_classifiers.tsv  редактируемый список счётных слов
   config.yaml                 все настройки
@@ -277,6 +278,20 @@ pytest, ruff, ESLint, Prettier, TypeScript, Vitest и сборку.
 Эталон составляет только эксперт: pipeline его не создаёт и не дополняет. Пока `gold.json`
 нет, отчёт сообщает, что данных нет, и не показывает никаких чисел.
 
+### Сравнение методов выравнивания
+
+```powershell
+python -m pipeline compare-aligners                          # все методы
+python -m pipeline compare-aligners --methods gale_church,labse
+```
+
+Все тексты выравниваются каждым доступным методом с одинаковой сегментацией:
+bertalign, LaBSE (алгоритм Bertalign), Гейл–Чёрч, LLM (только при `ANTHROPIC_API_KEY` в `.env`)
+и базовый метод «по порядку». Недоступный метод пропускается, и в отчёте указано почему.
+Результат — `reports/aligners.md`: время работы, метрики по эталону для EN–ZH и EN–RU (если
+есть `gold.json`), согласие методов между собой и 10 показательных расхождений; плюс CSV и
+графики.
+
 | Выбор выборки | Проверка пары |
 |---|---|
 | ![Выборка](docs/screenshots/review-setup.png) | ![Проверка](docs/screenshots/review-dark.png) |
@@ -320,10 +335,10 @@ pytest, ruff, ESLint, Prettier, TypeScript, Vitest и сборку.
 
 ## Тесты
 
-- **Pipeline:** 103 теста pytest. Покрыты сегментация, выравнивание (включая LaBSE на
+- **Pipeline:** 110 тестов pytest. Покрыты сегментация, выравнивание (включая LaBSE на
   поддельных эмбеддингах и обёртку bertalign), разметка каждого языка, словарь эквивалентов,
   импорт CSV, LLM-модуль с поддельным API, полная сборка, цикл CSV → правки → пересборка,
-  чтение эталона и метрики `evaluate.py` (на синтетических данных из
+  чтение эталона, метрики `evaluate.py` и сравнение выравнивателей (на синтетических данных из
   `pipeline/tests/fixtures/`, помеченных `synthetic: true`).
 - **Сайт:** 49 тестов Vitest — поиск, подсветка, KWIC, генератор упражнений на реальном
   корпусе, выборка и модель проверки (выборка совпадает с Python-реализацией).
