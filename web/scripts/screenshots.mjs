@@ -19,9 +19,7 @@ const option = (name, fallback) => {
 };
 const base = option('base', 'http://localhost:4173/');
 const outDir = resolve(option('out', '../docs/screenshots'));
-const only = option('only', '')
-  .split(',')
-  .filter(Boolean);
+const only = option('only', '').split(',').filter(Boolean);
 const runAxe = args.includes('--axe');
 
 const DESKTOP = { width: 1360, height: 900 };
@@ -111,6 +109,8 @@ for (const shot of selected) {
 
 await browser.close();
 if (runAxe) {
-  console.log(violations === 0 ? 'axe: нарушений WCAG A/AA не найдено' : `axe: ${violations} нарушений`);
+  console.log(
+    violations === 0 ? 'axe: нарушений WCAG A/AA не найдено' : `axe: ${violations} нарушений`,
+  );
   process.exitCode = violations === 0 ? 0 : 1;
 }
