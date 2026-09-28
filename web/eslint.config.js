@@ -40,6 +40,6 @@ export default tseslint.config(
   {
     files: ['scripts/**/*.mjs', '*.js'],
     extends: [js.configs.recommended, prettier],
-    languageOptions: { globals: globals.node },
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 );
