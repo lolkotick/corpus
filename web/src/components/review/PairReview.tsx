@@ -10,12 +10,25 @@ import {
   setItemFix,
   toggleLink,
   updateMissed,
+  type Fix,
   type GoldPair,
   type ItemReview,
   type MissedItem,
   type Snapshot,
   type TargetLang,
 } from '../../lib/gold';
+import {
+  alignmentHint,
+  alignmentHintLabel,
+  applyAlignmentHint,
+  applyItemHint,
+  applyMissedHint,
+  hintLabel,
+  itemHint,
+  langSummary,
+  missedHints,
+  type PairHints,
+} from '../../lib/hints';
 import {
   alignmentTypeLabel,
   CASES,
@@ -44,6 +57,10 @@ export interface PairReviewProps {
   focus: number;
   editRow: string | null;
   picker: Lang | null;
+  /** Подсказки ИИ для этой пары; null — не загружены или пара контрольная. */
+  hints: PairHints | null;
+  /** Контрольная пара: подсказки есть, но скрыты (проверка вслепую). */
+  blind: boolean;
   onFocus: (index: number) => void;
   onKey: (row: Row, key: '1' | '2' | '3') => void;
   onChange: (review: GoldPair) => void;
@@ -91,6 +108,55 @@ function missedLabel(lang: Lang, item: MissedItem): string {
 }
 
 const ALIGN_TITLE: Record<TargetLang, string> = { zh: 'EN – ZH', ru: 'EN – RU' };
+
+/** Подсказка ИИ под строкой: предложение и обоснование; вердикт остаётся за экспертом. */
+function HintLine({
+  label,
+  note,
+  agrees,
+  onAccept,
+  acceptLabel = 'Принять',
+  hotkey = true,
+}: {
+  label: string;
+  note?: string;
+  /** true — вердикт эксперта совпал с подсказкой, false — разошёлся, null — вердикта нет. */
+  agrees: boolean | null;
+  onAccept?: () => void;
+  acceptLabel?: string;
+  /** Показывать клавишу H: она работает для строки под курсором, но не для пропусков. */
+  hotkey?: boolean;
+}) {
+  return (
+    <div
+      lang="ru"
+      className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-sunken px-2.5 py-1.5 text-[13.5px]"
+    >
+      <p className="min-w-0 flex-1">
+        <span className="font-medium">ИИ: {label}</span>
+        {note && <span className="text-muted"> — {note}</span>}
+        {agrees === false && <span className="ml-2 text-warn">ваш вердикт другой</span>}
+      </p>
+      {onAccept && agrees === null && (
+        <button
+          type="button"
+          className="shrink-0 rounded-md px-2 py-0.5 font-medium text-muted ring-1 ring-rule-strong ring-inset hover:bg-surface hover:text-ink"
+          onClick={(event) => {
+            event.stopPropagation();
+            onAccept();
+          }}
+        >
+          {hotkey && <Kbd>H</Kbd>} {acceptLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function sameFix(a: Fix | null | undefined, b: Fix | null | undefined): boolean {
+  const keys = ['head', 'classifier', 'case', 'lemma'] as const;
+  return keys.every((k) => (a?.[k] ?? '') === (b?.[k] ?? ''));
+}
 
 export function PairReview(props: PairReviewProps) {
   const { data, pair, review, rows, focus } = props;
@@ -149,6 +215,13 @@ export function PairReview(props: PairReviewProps) {
           Карточка пары <ExternalIcon size={14} />
         </Link>
       </header>
+      {(props.hints !== null || props.blind) && (
+        <p className="mt-2 text-[13.5px] text-muted">
+          {props.blind
+            ? 'Контрольная пара: подсказки ИИ скрыты, проверьте её вслепую.'
+            : 'Подсказки ИИ показаны под строками. Пара будет отмечена в gold.json как проверенная с подсказками.'}
+        </p>
+      )}
 
       <div className="mt-4 grid gap-4 rounded-2xl border border-rule bg-surface p-5 md:grid-cols-3">
         {REVIEW_LANGS.map((lang) => (
@@ -179,6 +252,7 @@ export function PairReview(props: PairReviewProps) {
             {(['zh', 'ru'] as const).map((lang) => {
               const row: Row = { kind: 'align', lang };
               const a = review.alignment[lang];
+              const hint = alignmentHint(props.hints, lang);
               return (
                 <ReviewRow key={lang} {...rowProps(row)}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -215,6 +289,14 @@ export function PairReview(props: PairReviewProps) {
                     <p className="mt-2 flex items-center gap-1.5 text-[13px] text-warn">
                       <AlertIcon size={14} /> Отметьте хотя бы одно соответствие
                     </p>
+                  )}
+                  {hint && (
+                    <HintLine
+                      label={alignmentHintLabel(hint)}
+                      note={hint.note}
+                      agrees={a.verdict === null ? null : a.verdict === hint.verdict}
+                      onAccept={() => props.onChange(applyAlignmentHint(review, lang, hint))}
+                    />
                   )}
                 </ReviewRow>
               );
@@ -256,6 +338,7 @@ function PhenomenonSection({
   review,
   editRow,
   picker,
+  hints,
   onKey,
   onChange,
   onEditDone,
@@ -275,6 +358,9 @@ function PhenomenonSection({
   const headRow: Row = { kind: 'lang', lang };
   const n = phen.items.length;
   const current = pair.annotations[lang];
+  const summary = langSummary(hints, review, lang);
+  const clean = summary !== null && summary.flagged === 0 && summary.missed === 0;
+  const proposed = missedHints(hints, review, lang);
 
   return (
     <section aria-labelledby={`review-${lang}`}>
@@ -315,6 +401,18 @@ function PhenomenonSection({
               onChange={(v) => onKey(headRow, v === 'all' ? '1' : '2')}
             />
           </div>
+          {summary && (
+            <HintLine
+              label={
+                clean
+                  ? 'все пометки верны, пропусков нет'
+                  : `есть замечания — к пометкам: ${String(summary.flagged)}, пропусков: ${String(summary.missed)}`
+              }
+              agrees={phen.mode === null ? null : !(phen.mode === 'all-correct' && !clean)}
+              onAccept={() => onKey(headRow, clean ? '1' : '2')}
+              acceptLabel={clean ? 'Всё верно' : 'Проверить по одной'}
+            />
+          )}
         </ReviewRow>
 
         {phen.mode === 'itemized' &&
@@ -322,6 +420,7 @@ function PhenomenonSection({
             const row: Row = { kind: 'item', lang, index };
             const key = rowKey(row);
             const disputed = current.find((a) => a.id === item.id)?.disputed;
+            const hint = itemHint(hints, lang, item.id);
             return (
               <ReviewRow key={item.id} {...rowProps(row)} className="ml-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -352,6 +451,20 @@ function PhenomenonSection({
                       onDone={onEditDone}
                     />
                   </div>
+                )}
+                {hint && (
+                  <HintLine
+                    label={hintLabel(lang, hint)}
+                    note={hint.note}
+                    agrees={
+                      item.verdict === null
+                        ? null
+                        : item.verdict === hint.verdict &&
+                          (hint.verdict !== 'corrected' ||
+                            sameFix(item.correction, hint.correction))
+                    }
+                    onAccept={() => onChange(applyItemHint(review, lang, index, hint))}
+                  />
                 )}
               </ReviewRow>
             );
@@ -408,6 +521,17 @@ function PhenomenonSection({
                 ))}
               </ul>
             )}
+            {proposed.map((m) => (
+              <HintLine
+                key={m.start}
+                label={`возможный пропуск — ${missedLabel(lang, m)}`}
+                note={m.note}
+                agrees={null}
+                hotkey={false}
+                acceptLabel="Добавить"
+                onAccept={() => onChange(applyMissedHint(review, lang, m))}
+              />
+            ))}
             {picker === lang && (
               <MissedPicker
                 text={pair[lang]}

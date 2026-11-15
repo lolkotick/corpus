@@ -212,9 +212,10 @@ export function SetupPanel({
           </table>
         )}
         <p className={cx('rounded-xl bg-sunken p-3 text-[13.5px] text-muted')}>
-          Эталон размечает только эксперт. Результаты хранятся в этом браузере; чтобы использовать
-          их в отчётах, нажмите «Экспорт gold.json» и сохраните файл как{' '}
-          <code className="text-[12.5px]">data/gold/gold.json</code>.
+          Вердикты выносит только эксперт; подсказки ИИ, если их загрузить, остаются предложениями.
+          Результаты хранятся в этом браузере; чтобы использовать их в отчётах, нажмите «Экспорт
+          gold.json» и сохраните файл как <code className="text-[12.5px]">data/gold/gold.json</code>
+          .
         </p>
       </div>
     </section>

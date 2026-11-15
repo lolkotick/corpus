@@ -84,6 +84,8 @@ export interface GoldPair {
   alignment: Record<TargetLang, AlignmentReview>;
   phenomena: Record<Lang, LangReview>;
   comment: string;
+  /** true — при проверке пары на экране были подсказки ИИ (см. lib/hints.ts). */
+  hints_shown?: boolean;
 }
 
 /** proportional — пропорционально размеру текстов; by-register — поровну по регистрам. */

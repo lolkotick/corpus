@@ -5,7 +5,7 @@
     make reports                               # то же самое (Linux/macOS)
 
 Порядок: описание корпуса → оценка по эталону → сравнение методов
-выравнивания → анализ ошибок → апробация → копии отчётов в Word
+выравнивания → анализ ошибок → согласие с подсказками ИИ → апробация → копии отчётов в Word
 (reports/docx/). Отчёт, для которого нет данных (нет gold.json или CSV теста),
 содержит понятное сообщение — сборка остальных отчётов не прерывается.
 """
@@ -35,7 +35,14 @@ class Step:
 
 def build_all(config: Config, use_llm: bool = True, docx: bool = True,
               log: Callable[[str], None] = print) -> list[Step]:
-    from pipeline import approbation, compare_aligners, corpus_report, error_analysis, evaluate
+    from pipeline import (
+        approbation,
+        compare_aligners,
+        corpus_report,
+        error_analysis,
+        evaluate,
+        hints,
+    )
 
     out = config.path("reports")
     gold = config.path("gold")
@@ -49,6 +56,8 @@ def build_all(config: Config, use_llm: bool = True, docx: bool = True,
         (Step("Сравнение методов выравнивания", "aligners.md"),
          lambda: compare_aligners.run(config, gold, out, methods)),
         (Step("Анализ ошибок", "errors.md"), lambda: error_analysis.run(gold, out, root)),
+        (Step("Согласие с подсказками ИИ", "hints.md"),
+         lambda: hints.run(gold, gold.with_name("hints.json"), out, root)),
         (Step("Апробация", "approbation.md"),
          lambda: approbation.run([config.path("approbation")], out, root)),
     ]

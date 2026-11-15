@@ -40,6 +40,38 @@ def test_synthetic_metrics_match_hand_calculation():
     assert abs(ru.full.precision - 4 / 6) < 1e-9 and abs(ru.full.f1 - 8 / 11) < 1e-9
 
 
+def test_metrics_by_register_add_up_to_totals(tmp_path):
+    corpus = json.loads(CORPUS.read_text(encoding="utf-8"))
+    for text in corpus["texts"]:
+        if text["id"] == "syn2":
+            text["register"] = "официальный"
+    gold = load_gold(GOLD)
+    assert gold is not None
+    ev = evaluate(corpus, gold)
+    assert [(r.register, r.pairs) for r in ev.by_register] == [("учебный", 3), ("официальный", 1)]
+    official = ev.by_register[1]
+    # syn2: выравнивание EN–ZH верно, EN–RU — «ошибка» без исправления.
+    assert counts(official.alignment["zh"].strict) == (1, 0, 0)
+    assert counts(official.alignment["ru"].strict) == (0, 1, 0)
+    for lang in ("zh", "ru"):
+        parts = [counts(r.alignment[lang].strict) for r in ev.by_register]
+        assert tuple(map(sum, zip(*parts, strict=True))) == counts(ev.alignment[lang].strict)
+    for lang in ("en", "zh", "ru"):
+        parts = [counts(r.langs[lang].full) for r in ev.by_register]
+        assert tuple(map(sum, zip(*parts, strict=True))) == counts(ev.langs[lang].full)
+
+    corpus_path = tmp_path / "corpus.json"
+    corpus_path.write_text(json.dumps(corpus, ensure_ascii=False), encoding="utf-8")
+    code, files = run(corpus_path, GOLD, tmp_path, tmp_path)
+    assert code == 0 and "evaluation_by_register.csv" in {f.name for f in files}
+    report = (tmp_path / "evaluation.md").read_text(encoding="utf-8")
+    assert "## По регистрам" in report and "| официальный | 1 |" in report
+    assert "пропорционально по текстам" in report
+    rows = (tmp_path / "evaluation_by_register.csv").read_text(encoding="utf-8-sig").splitlines()
+    assert rows[0].startswith("Регистр;Пар;Задача;Уровень;TP;FP;FN")
+    assert len(rows) == 1 + 2 * 10  # два регистра × десять строк сводной таблицы
+
+
 def test_report_files_and_synthetic_warning(tmp_path):
     code, files = run(CORPUS, GOLD, tmp_path, tmp_path)
     assert code == 0

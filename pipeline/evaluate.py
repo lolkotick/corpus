@@ -35,6 +35,7 @@ from pipeline.gold import (
     truth_items,
 )
 from pipeline.metrics import AlignmentScore, Counts, format_ci, link_label, score_alignment
+from pipeline.sources import DEFAULT_REGISTER
 from pipeline.tables import md_table, write_csv
 
 PHENOMENON = {"en": "Артикли (EN)", "zh": "量词 (ZH)", "ru": "Падежи (RU)"}
@@ -43,6 +44,9 @@ ATTRIBUTE = {"en": "вершина", "zh": "существительное", "ru
 TARGET_LABEL = {"zh": "EN–ZH", "ru": "EN–RU"}
 NONE_CASE = "—"
 VERDICT_LABEL = {"correct": "верно", "wrong": "ошибка", "corrected": "исправлено"}
+REGISTER_ORDER = {"учебный": 0, "бытовой": 1, "официальный": 2}
+STRATEGY_LABEL = {"proportional": "пропорционально по текстам",
+                  "by-register": "поровну по регистрам"}
 
 
 class NoGoldData(Exception):
@@ -61,6 +65,16 @@ class LangScore:
 
 
 @dataclass
+class RegisterScore:
+    """Те же метрики, но только по парам одного регистра."""
+
+    register: str
+    pairs: int
+    alignment: dict[str, AlignmentScore]
+    langs: dict[str, LangScore]
+
+
+@dataclass
 class Evaluation:
     gold: Gold
     corpus_generated_at: str
@@ -72,6 +86,11 @@ class Evaluation:
     alignment: dict[str, AlignmentScore]
     verdicts: dict[str, Counter[str]]
     langs: dict[str, LangScore]
+    by_register: list[RegisterScore] = field(default_factory=list)
+
+    @property
+    def strategy(self) -> str:
+        return str(self.gold.data.get("sample", {}).get("strategy") or "proportional")
 
 
 def _norm(value: str | None) -> str:
@@ -180,14 +199,27 @@ def evaluate(corpus: dict[str, Any], gold: Gold) -> Evaluation:
         )
 
     links = corpus_links(corpus)
-    alignment = {}
-    verdicts: dict[str, Counter[str]] = {}
-    for lang in TARGETS:
-        truths = [alignment_truth(p, lang) for p in used]
-        alignment[lang] = score_alignment(truths, links[lang])
-        verdicts[lang] = Counter(t.verdict for t in truths)
-    pairs = [(p, by_id[p["id"]]) for p in used]
-    langs = {lang: score_lang(lang, pairs) for lang in LANGS}
+
+    def score(subset: list[dict[str, Any]]) -> tuple[dict[str, AlignmentScore],
+                                                     dict[str, LangScore]]:
+        scored = {lang: score_alignment([alignment_truth(p, lang) for p in subset], links[lang])
+                  for lang in TARGETS}
+        both = [(p, by_id[p["id"]]) for p in subset]
+        return scored, {lang: score_lang(lang, both) for lang in LANGS}
+
+    alignment, langs = score(used)
+    verdicts = {lang: Counter(alignment_truth(p, lang).verdict for p in used)
+                for lang in TARGETS}
+    register_of = {t["id"]: (t.get("register") or "").strip() or DEFAULT_REGISTER
+                   for t in corpus.get("texts", [])}
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for p in used:
+        grouped.setdefault(register_of.get(p["text_id"], DEFAULT_REGISTER), []).append(p)
+    by_register = [
+        RegisterScore(register, len(subset), *score(subset))
+        for register, subset in sorted(
+            grouped.items(), key=lambda kv: (REGISTER_ORDER.get(kv[0], 9), kv[0]))
+    ]
     sample = gold.sample_ids
     partial = sum(1 for p in gold.pairs if not pair_complete(p))
     return Evaluation(
@@ -201,13 +233,15 @@ def evaluate(corpus: dict[str, Any], gold: Gold) -> Evaluation:
         alignment=alignment,
         verdicts=verdicts,
         langs=langs,
+        by_register=by_register,
     )
 
 
 # ─── Вывод ────────────────────────────────────────────────────────────────
 
 
-def metric_rows(ev: Evaluation) -> list[list[Any]]:
+def metric_rows(ev: Evaluation | RegisterScore, *, main_only: bool = False) -> list[list[Any]]:
+    """Строки сводной таблицы; main_only — только строгое выравнивание и «обнаружение + признак»."""
     rows: list[list[Any]] = []
 
     def add(task: str, level: str, c: Counts) -> None:
@@ -217,16 +251,25 @@ def metric_rows(ev: Evaluation) -> list[list[Any]]:
     for lang in TARGETS:
         add(f"Выравнивание {TARGET_LABEL[lang]}", "строгая (группы предложений)",
             ev.alignment[lang].strict)
-        add(f"Выравнивание {TARGET_LABEL[lang]}", "мягкая (пары предложений)",
-            ev.alignment[lang].lax)
+        if not main_only:
+            add(f"Выравнивание {TARGET_LABEL[lang]}", "мягкая (пары предложений)",
+                ev.alignment[lang].lax)
     for lang in LANGS:
-        add(PHENOMENON[lang], "обнаружение", ev.langs[lang].detection)
+        if not main_only:
+            add(PHENOMENON[lang], "обнаружение", ev.langs[lang].detection)
         add(PHENOMENON[lang], f"обнаружение + {ATTRIBUTE[lang]}", ev.langs[lang].full)
     return rows
 
 
+def register_rows(ev: Evaluation, *, main_only: bool = False) -> list[list[Any]]:
+    """Те же строки по каждому регистру: регистр, число пар, затем столбцы сводной таблицы."""
+    return [[r.register, r.pairs, *row]
+            for r in ev.by_register for row in metric_rows(r, main_only=main_only)]
+
+
 METRIC_HEAD = ["Задача", "Уровень", "TP", "FP", "FN", "Точность (P)", "Полнота (R)", "F1",
                "95% ДИ точности", "95% ДИ полноты"]
+REGISTER_HEAD = ["Регистр", "Пар", *METRIC_HEAD]
 
 
 def confusion_matrix(score: LangScore) -> tuple[list[str], list[str], list[list[int]]]:
@@ -248,6 +291,7 @@ def write_outputs(ev: Evaluation, out: Path, root: Path) -> list[Path]:
     files: list[Path] = []
     rows = metric_rows(ev)
     files.append(write_csv(out / "evaluation_metrics.csv", METRIC_HEAD, rows))
+    files.append(write_csv(out / "evaluation_by_register.csv", REGISTER_HEAD, register_rows(ev)))
 
     ru = ev.langs["ru"]
     r_labels, c_labels, matrix = confusion_matrix(ru)
@@ -307,7 +351,7 @@ def write_outputs(ev: Evaluation, out: Path, root: Path) -> list[Path]:
 
 def _rel(path: Path, root: Path) -> str:
     try:
-        return str(path.resolve().relative_to(root.resolve()))
+        return path.resolve().relative_to(root.resolve()).as_posix()
     except ValueError:
         return str(path)
 
@@ -328,7 +372,7 @@ def render_report(ev: Evaluation, rows: list[list[Any]],
         f"- Корпус: сборка {ev.corpus_generated_at}; эталон составлялся по сборке "
         f"{gold.data.get('corpus', {}).get('generated_at', '—')}",
         f"- Выборка: {ev.sample_total} пар, seed {gold.data.get('sample', {}).get('seed', '—')}, "
-        "пропорционально по текстам",
+        f"{STRATEGY_LABEL.get(ev.strategy, ev.strategy)}",
         f"- Проверено полностью: **{ev.complete}**; начато, но не закончено: {ev.partial}"
         f"; устарели после пересборки: {len(ev.stale)}; вошло в расчёт: **{len(ev.used)}**",
         "",
@@ -347,6 +391,19 @@ def render_report(ev: Evaluation, rows: list[list[Any]],
         "",
         "На графике `evaluation_prf.png` выравнивание показано по строгой оценке, разметка — "
         "по уровню «обнаружение + признак».",
+        "",
+        "## По регистрам",
+        "",
+        md_table(REGISTER_HEAD, register_rows(ev, main_only=True), digits=3, align_right_from=4),
+        "",
+        "Показаны строгая оценка выравнивания и уровень «обнаружение + признак»; все уровни — "
+        "в `evaluation_by_register.csv`. "
+        + ("Выборка взята поровну из каждого регистра, поэтому сводная таблица выше не "
+           "отражает состав корпуса: в нём регистры представлены неравномерно. Выводы о "
+           "качестве разметки делайте по этой таблице, отдельно для каждого регистра."
+           if ev.strategy == "by-register" else
+           "Выборка пропорциональна размеру текстов, поэтому на малые регистры приходится "
+           "мало пар и доверительные интервалы для них широкие."),
         "",
         "## Выравнивание",
         "",
@@ -399,7 +456,7 @@ def no_data_report(message: str, gold_path: Path, root: Path) -> str:
         f"`{_rel(gold_path, root)}`.",
         "3. Запустите `python -m pipeline evaluate`.",
         "",
-        "Эталон составляет только эксперт вручную; скрипт не придумывает данные.",
+        "Вердикты в эталоне выносит только эксперт; скрипт не придумывает данные.",
         "",
     ])
 

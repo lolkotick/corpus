@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 
 import { SAMPLE_STRATEGIES, sampleStrategy, type GoldFile, type PairStatus } from '../../lib/gold';
+import type { HintsFile } from '../../lib/hints';
 import { plural } from '../../lib/labels';
 import { buttonClasses, cx } from '../../lib/styles';
 import { DownloadIcon } from '../icons';
@@ -15,7 +16,13 @@ export function Toolbar({
   onImport,
   onResize,
   onReset,
+  hints,
+  onHintsImport,
+  onHintsClear,
 }: {
+  hints: HintsFile | null;
+  onHintsImport: () => void;
+  onHintsClear: () => void;
   gold: GoldFile;
   done: number;
   partial: number;
@@ -67,6 +74,36 @@ export function Toolbar({
           <button type="button" className={cx(buttonClasses.ghost, 'py-2.5')} onClick={onImport}>
             Импорт
           </button>
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-rule pt-3 text-sm">
+        <p className="text-muted">
+          {hints ? (
+            <>
+              <b className="font-medium text-ink">Подсказки ИИ загружены</b>
+              {hints.source ? ` (${hints.source})` : ''}: {hints.pairs.length}{' '}
+              {plural(hints.pairs.length, 'пара', 'пары', 'пар')}
+              {hints.blind_pair_ids.length > 0 &&
+                `, для ${String(hints.blind_pair_ids.length)} ${plural(hints.blind_pair_ids.length, 'контрольной', 'контрольных', 'контрольных')} скрыты`}
+              . Вердикт по каждой строке выносите вы.
+            </>
+          ) : (
+            'Подсказки ИИ не загружены — проверка вслепую.'
+          )}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={cx(buttonClasses.ghost, 'px-4 py-2 text-sm')}
+            onClick={onHintsImport}
+          >
+            {hints ? 'Заменить подсказки…' : 'Загрузить подсказки ИИ…'}
+          </button>
+          {hints && (
+            <button type="button" className={buttonClasses.subtle} onClick={onHintsClear}>
+              Убрать
+            </button>
+          )}
         </div>
       </div>
       <details className="mt-3 border-t border-rule pt-3 text-sm">

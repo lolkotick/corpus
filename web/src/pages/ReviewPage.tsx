@@ -27,6 +27,15 @@ import {
   type GoldPair,
   type Verdict,
 } from '../lib/gold';
+import {
+  applyRowHint,
+  HINTS_STORAGE_KEY,
+  isBlind,
+  isHintsFile,
+  markHintsShown,
+  visibleHints,
+  type HintsFile,
+} from '../lib/hints';
 import { plural } from '../lib/labels';
 import {
   acceptRemaining,
@@ -77,6 +86,7 @@ const HOTKEYS: readonly [string[], string][] = [
   [['↓', 'J'], 'следующая строка'],
   [['↑', 'K'], 'предыдущая строка'],
   [['A'], 'остальное в паре верно'],
+  [['H'], 'принять подсказку ИИ для строки (если подсказки загружены)'],
   [['Enter'], 'добавить пропуск (на строке «Пропуски») · в поле — готово'],
   [['→'], 'следующая пара'],
   [['←'], 'предыдущая пара'],
@@ -125,10 +135,17 @@ function ReviewContent({ data }: { data: CorpusIndex }) {
   const [help, setHelp] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [hints, setHints] = useState<HintsFile | null>(() =>
+    readJson(HINTS_STORAGE_KEY, isHintsFile),
+  );
+  const hintsRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     writeStorage(GOLD_STORAGE_KEY, gold ? JSON.stringify(gold) : null);
   }, [gold]);
+  useEffect(() => {
+    writeStorage(HINTS_STORAGE_KEY, hints ? JSON.stringify(hints) : null);
+  }, [hints]);
 
   const sample = useMemo(() => gold?.sample.pair_ids ?? [], [gold]);
   const statuses = useMemo(
@@ -149,6 +166,9 @@ function ReviewContent({ data }: { data: CorpusIndex }) {
   const review: GoldPair | undefined =
     gold && pair ? (findReview(gold, pair.id) ?? emptyReview(pair)) : undefined;
   const rows = useMemo(() => (review ? buildRows(review) : []), [review]);
+  // Подсказки ИИ для текущей пары; для контрольных пар (проверка вслепую) — null.
+  const pairHints = useMemo(() => (pairId ? visibleHints(hints, pairId) : null), [hints, pairId]);
+  const blind = pairId ? isBlind(hints, pairId) : false;
 
   const goTo = useCallback(
     (i: number) => {
@@ -180,9 +200,16 @@ function ReviewContent({ data }: { data: CorpusIndex }) {
       ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [focus, rows]);
 
-  const save = useCallback((next: GoldPair) => {
-    setGold((g) => (g ? upsertReview(g, next, now()) : g));
-  }, []);
+  const hintsOnScreen = pairHints !== null;
+  const save = useCallback(
+    (next: GoldPair) => {
+      // Пара, проверенная при видимых подсказках, помечается: по этой пометке
+      // pipeline отделяет проверку вслепую от проверки с подсказками.
+      const marked = hintsOnScreen ? markHintsShown(next) : next;
+      setGold((g) => (g ? upsertReview(g, marked, now()) : g));
+    },
+    [hintsOnScreen],
+  );
 
   const handleKey = useCallback(
     (row: Row, key: '1' | '2' | '3') => {
@@ -222,6 +249,13 @@ function ReviewContent({ data }: { data: CorpusIndex }) {
         goTo(index - 1);
       } else if (event.code === 'KeyA') {
         save(acceptRemaining(review));
+      } else if (event.code === 'KeyH') {
+        const next = row ? applyRowHint(review, row, pairHints) : null;
+        if (!next || !row) return;
+        save(next);
+        const nextRows = buildRows(next);
+        const at = nextRows.findIndex((r) => rowKey(r) === rowKey(row));
+        setFocus(nextOpenRow(next, nextRows, at));
       } else if (event.key === 'Enter' && row?.kind === 'missed') {
         setPicker(row.lang);
       } else if (event.key === '?' || (event.code === 'Slash' && event.shiftKey)) {
@@ -236,7 +270,32 @@ function ReviewContent({ data }: { data: CorpusIndex }) {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [review, rows, focus, handleKey, goTo, index, save]);
+  }, [review, rows, focus, handleKey, goTo, index, save, pairHints]);
+
+  function importHints(file: File) {
+    void file.text().then((raw) => {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        setNotice('Файл подсказок не читается как JSON — загрузка отменена.');
+        return;
+      }
+      if (!isHintsFile(parsed)) {
+        setNotice('Это не файл подсказок (hints.json) или его версия не поддерживается.');
+        return;
+      }
+      setHints(parsed);
+      const inSample = parsed.pairs.filter((p) => sample.includes(p.id)).length;
+      const blind = parsed.blind_pair_ids.length;
+      setNotice(
+        `Подсказки загружены: ${String(parsed.pairs.length)} ${plural(parsed.pairs.length, 'пара', 'пары', 'пар')}, из них в текущей выборке — ${String(inSample)}.` +
+          (blind
+            ? ` Для ${String(blind)} ${plural(blind, 'контрольной пары', 'контрольных пар', 'контрольных пар')} подсказки скрыты: их нужно проверить вслепую.`
+            : ''),
+      );
+    });
+  }
 
   function importFile(file: File) {
     void file.text().then((raw) => {
@@ -271,19 +330,34 @@ function ReviewContent({ data }: { data: CorpusIndex }) {
   }
 
   const fileInput = (
-    <input
-      ref={fileRef}
-      type="file"
-      accept="application/json,.json"
-      className="sr-only"
-      tabIndex={-1}
-      aria-hidden="true"
-      onChange={(event) => {
-        const file = event.target.files?.[0];
-        if (file) importFile(file);
-        event.target.value = '';
-      }}
-    />
+    <>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) importFile(file);
+          event.target.value = '';
+        }}
+      />
+      <input
+        ref={hintsRef}
+        type="file"
+        accept="application/json,.json"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) importHints(file);
+          event.target.value = '';
+        }}
+      />
+    </>
   );
 
   const header = (
@@ -339,6 +413,12 @@ function ReviewContent({ data }: { data: CorpusIndex }) {
         onExport={() => download('gold.json', serializeGold(gold))}
         onImport={() => fileRef.current?.click()}
         onResize={(size) => setGold(resizeSample(gold, corpus, size, now()))}
+        hints={hints}
+        onHintsImport={() => hintsRef.current?.click()}
+        onHintsClear={() => {
+          setHints(null);
+          setNotice('Подсказки убраны из браузера. Уже сделанные проверки не изменились.');
+        }}
         onReset={() => {
           if (
             window.confirm(
@@ -366,6 +446,8 @@ function ReviewContent({ data }: { data: CorpusIndex }) {
             focus={focus}
             editRow={editRow}
             picker={picker}
+            hints={pairHints}
+            blind={blind}
             onFocus={setFocus}
             onKey={handleKey}
             onChange={save}
