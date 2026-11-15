@@ -37,6 +37,35 @@ def test_sample_matches_typescript_crosscheck():
     data = json.loads((FIXTURES / "sample_crosscheck.json").read_text(encoding="utf-8"))
     for case in data["cases"]:
         assert sample_pair_ids(data["pairs"], case["size"], case["seed"]) == case["expected"]
+    assert data["register_cases"]
+    for case in data["register_cases"]:
+        assert sample_pair_ids(
+            data["pairs"], case["size"], case["seed"], "by-register", data["registers"]
+        ) == case["expected"]
+
+
+def test_sample_by_register_is_equal_and_prefix_stable():
+    sizes = {"a": 6, "b": 5, "c": 40, "d": 200}
+    registers = {"a": "учебный", "b": "", "c": "бытовой", "d": "официальный"}
+    pairs = [{"id": f"{t}-{k}", "text_id": t} for t, n in sizes.items() for k in range(n)]
+
+    def counts(ids):
+        by = {"учебный": 0, "бытовой": 0, "официальный": 0}
+        for i in ids:
+            by[registers[i.split("-")[0]] or "учебный"] += 1
+        return by
+
+    ids = sample_pair_ids(pairs, 30, 7, "by-register", registers)
+    assert len(set(ids)) == 30
+    assert counts(ids) == {"учебный": 10, "бытовой": 10, "официальный": 10}
+    assert sample_pair_ids(pairs, 60, 7, "by-register", registers)[:30] == ids
+    # Маленький регистр исчерпан (11 пар) — остаток делят остальные.
+    assert counts(sample_pair_ids(pairs, 61, 7, "by-register", registers)) == {
+        "учебный": 11, "бытовой": 25, "официальный": 25,
+    }
+    assert len(sample_pair_ids(pairs, 999, 7, "by-register", registers)) == 251
+    with pytest.raises(ValueError):
+        sample_pair_ids(pairs, 5, 7, "other")
 
 
 def test_sample_is_proportional_and_prefix_stable():

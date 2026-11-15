@@ -9,6 +9,7 @@
  */
 import type { CaseCode, Corpus, Lang, Pair } from '../data/types';
 import { mulberry32, shuffle } from './random';
+import { compareRegisters, DEFAULT_REGISTER, registerOf } from './sources';
 
 export const GOLD_FORMAT = 'corpus-gold';
 export const GOLD_VERSION = 1;
@@ -83,12 +84,22 @@ export interface GoldPair {
   alignment: Record<TargetLang, AlignmentReview>;
   phenomena: Record<Lang, LangReview>;
   comment: string;
+  /** true — при проверке пары на экране были подсказки ИИ (см. lib/hints.ts). */
+  hints_shown?: boolean;
 }
+
+/** proportional — пропорционально размеру текстов; by-register — поровну по регистрам. */
+export type SampleStrategy = 'proportional' | 'by-register';
+
+export const SAMPLE_STRATEGIES: Record<SampleStrategy, string> = {
+  'by-register': 'поровну по регистрам',
+  proportional: 'пропорционально размеру текстов',
+};
 
 export interface GoldSample {
   seed: number;
   size: number;
-  strategy: 'proportional';
+  strategy: SampleStrategy;
   pair_ids: string[];
 }
 
@@ -112,11 +123,48 @@ export interface GoldFile {
  * (seed), k-я пара текста получает ключ (k + сдвиг) / n; общий список сортируется
  * по ключу. Любые первые N пар списка представляют тексты пропорционально их
  * размеру (±1 пара), а при увеличении N прежняя выборка сохраняется целиком.
+ *
+ * Стратегия by-register берёт поровну из каждого регистра (99 пар → 33 + 33 + 33):
+ * в пропорциональной выборке маленький регистр почти не представлен.
+ * Тот же алгоритм — в pipeline/gold.py (sample_pair_ids).
  */
-export function samplePairIds(corpus: Corpus, size: number, seed: number): string[] {
+export function samplePairIds(
+  corpus: Corpus,
+  size: number,
+  seed: number,
+  strategy: SampleStrategy = 'proportional',
+): string[] {
   const random = mulberry32(seed);
-  const byText = new Map<string, string[]>();
+  const limit = Math.max(0, size);
+  if (strategy === 'proportional') return proportionalOrder(corpus.pairs, random).slice(0, limit);
+
+  // Поровну по регистрам: внутри регистра — тот же пропорциональный порядок по текстам,
+  // затем регистры чередуются по одной паре. Любые первые N пар делятся между регистрами
+  // поровну (±1), пока в регистре есть пары; при увеличении N прежняя выборка сохраняется.
+  const registerByText = new Map(corpus.texts.map((t) => [t.id, registerOf(t)]));
+  const byRegister = new Map<string, Pair[]>();
   for (const pair of corpus.pairs) {
+    const register = registerByText.get(pair.text_id) ?? DEFAULT_REGISTER;
+    const list = byRegister.get(register) ?? [];
+    list.push(pair);
+    byRegister.set(register, list);
+  }
+  const orders = [...byRegister.values()].map((pairs) => proportionalOrder(pairs, random));
+  const longest = Math.max(0, ...orders.map((o) => o.length));
+  const result: string[] = [];
+  for (let k = 0; k < longest && result.length < limit; k += 1) {
+    for (const order of orders) {
+      const id = order[k];
+      if (id !== undefined && result.length < limit) result.push(id);
+    }
+  }
+  return result;
+}
+
+/** Все пары в порядке пропорциональной выборки по текстам (см. samplePairIds). */
+function proportionalOrder(pairs: readonly Pair[], random: () => number): string[] {
+  const byText = new Map<string, string[]>();
+  for (const pair of pairs) {
     const list = byText.get(pair.text_id) ?? [];
     list.push(pair.id);
     byText.set(pair.text_id, list);
@@ -130,7 +178,25 @@ export function samplePairIds(corpus: Corpus, size: number, seed: number): strin
     });
   }
   keyed.sort((a, b) => a.key - b.key || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  return keyed.slice(0, Math.max(0, size)).map((k) => k.id);
+  return keyed.map((k) => k.id);
+}
+
+/** Сколько пар выборки приходится на каждый регистр (учебный → бытовой → официальный). */
+export function sampleByRegister(
+  corpus: Corpus,
+  ids: readonly string[],
+): { register: string; sampled: number; total: number }[] {
+  const chosen = new Set(ids);
+  const registerByText = new Map(corpus.texts.map((t) => [t.id, registerOf(t)]));
+  const rows = new Map<string, { register: string; sampled: number; total: number }>();
+  for (const pair of corpus.pairs) {
+    const register = registerByText.get(pair.text_id) ?? DEFAULT_REGISTER;
+    const row = rows.get(register) ?? { register, sampled: 0, total: 0 };
+    row.total += 1;
+    if (chosen.has(pair.id)) row.sampled += 1;
+    rows.set(register, row);
+  }
+  return [...rows.values()].sort((a, b) => compareRegisters(a.register, b.register));
 }
 
 /** Сколько пар выборки приходится на каждый текст (в порядке текстов корпуса). */
@@ -154,10 +220,11 @@ export function sampleByText(
 
 export function newGoldFile(
   corpus: Corpus,
-  options: { annotator: string; size: number; seed: number },
+  options: { annotator: string; size: number; seed: number; strategy?: SampleStrategy },
   now: string,
 ): GoldFile {
   const size = Math.min(Math.max(1, Math.round(options.size)), corpus.pairs.length);
+  const strategy = options.strategy ?? 'proportional';
   return {
     format: GOLD_FORMAT,
     version: GOLD_VERSION,
@@ -168,15 +235,20 @@ export function newGoldFile(
     sample: {
       seed: options.seed,
       size,
-      strategy: 'proportional',
-      pair_ids: samplePairIds(corpus, size, options.seed),
+      strategy,
+      pair_ids: samplePairIds(corpus, size, options.seed, strategy),
     },
     pairs: [],
   };
 }
 
+/** Стратегия выборки файла; в файлах без поля или с неизвестным значением — пропорциональная. */
+export function sampleStrategy(gold: GoldFile): SampleStrategy {
+  return gold.sample.strategy === 'by-register' ? 'by-register' : 'proportional';
+}
+
 /**
- * Изменить объём выборки (тот же seed): при увеличении прежние пары остаются в начале
+ * Изменить объём выборки (тот же seed и та же стратегия): при увеличении прежние пары остаются в начале
  * списка. Уже сделанные проверки не удаляются, даже если пара выпала из выборки.
  */
 export function resizeSample(gold: GoldFile, corpus: Corpus, size: number, now: string): GoldFile {
@@ -187,7 +259,7 @@ export function resizeSample(gold: GoldFile, corpus: Corpus, size: number, now: 
     sample: {
       ...gold.sample,
       size: clamped,
-      pair_ids: samplePairIds(corpus, clamped, gold.sample.seed),
+      pair_ids: samplePairIds(corpus, clamped, gold.sample.seed, sampleStrategy(gold)),
     },
   };
 }

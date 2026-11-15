@@ -9,6 +9,8 @@
     python -m pipeline evaluate              # оценка разметки по data/gold/gold.json
     python -m pipeline compare-aligners      # сравнение методов выравнивания
     python -m pipeline errors                # анализ ошибок по эталону
+    python -m pipeline hints-template        # заготовка подсказок ИИ для режима «Проверка»
+    python -m pipeline hints-agreement       # согласие эксперта с подсказками ИИ
     python -m pipeline approbation [CSV ...]  # результаты предтеста и посттеста
     python -m pipeline corpus-report         # описание корпуса (таблицы и графики)
     python -m pipeline reports               # все отчёты для курсовой + копии в Word
@@ -22,7 +24,7 @@ import logging
 import sys
 from pathlib import Path
 
-from pipeline.config import load_config
+from pipeline.config import Config, load_config
 
 
 def _setup_logging(verbose: bool) -> None:
@@ -209,6 +211,34 @@ def cmd_errors(args: argparse.Namespace) -> int:
     return code
 
 
+def _hints_path(args: argparse.Namespace, config: Config) -> Path:
+    return Path(args.hints) if args.hints else config.path("gold").with_name("hints.json")
+
+
+def cmd_hints_template(args: argparse.Namespace) -> int:
+    from pipeline.hints import write_template
+
+    config = load_config(Path(args.config) if args.config else None)
+    corpus = Path(args.corpus) if args.corpus else config.path("output") / "corpus.json"
+    code, files = write_template(corpus, _hints_path(args, config), args.size, args.seed,
+                                 args.strategy, args.blind, args.source, args.force)
+    for path in files:
+        print(f"  → {path}")
+    return code
+
+
+def cmd_hints_agreement(args: argparse.Namespace) -> int:
+    from pipeline.hints import run
+
+    config = load_config(Path(args.config) if args.config else None)
+    gold = Path(args.gold) if args.gold else config.path("gold")
+    out = Path(args.out) if args.out else config.path("reports")
+    code, files = run(gold, _hints_path(args, config), out, config.root)
+    for path in files:
+        print(f"  → {path}")
+    return code
+
+
 def cmd_approbation(args: argparse.Namespace) -> int:
     from pipeline.approbation import run
 
@@ -279,6 +309,27 @@ def main(argv: list[str] | None = None) -> int:
     p_eval.add_argument("--corpus", help="corpus.json (по умолчанию web/public/data/corpus.json)")
     p_eval.add_argument("--out", help="папка отчётов (по умолчанию reports)")
     p_eval.set_defaults(func=cmd_evaluate)
+
+    p_tpl = sub.add_parser("hints-template",
+                           help="заготовка подсказок ИИ для режима «Проверка»")
+    p_tpl.add_argument("--size", type=int, default=99, help="объём выборки (по умолчанию 99)")
+    p_tpl.add_argument("--seed", type=int, default=2026, help="seed выборки (по умолчанию 2026)")
+    p_tpl.add_argument("--strategy", choices=["by-register", "proportional"],
+                       default="by-register", help="способ деления выборки")
+    p_tpl.add_argument("--blind", type=int, default=21,
+                       help="сколько первых пар выборки проверяются вслепую (по умолчанию 21)")
+    p_tpl.add_argument("--source", default="", help="кто составляет подсказки (модель, способ)")
+    p_tpl.add_argument("--corpus", help="corpus.json (по умолчанию web/public/data/corpus.json)")
+    p_tpl.add_argument("--hints", help="куда писать (по умолчанию data/gold/hints.json)")
+    p_tpl.add_argument("--force", action="store_true", help="перезаписать существующий файл")
+    p_tpl.set_defaults(func=cmd_hints_template)
+
+    p_agr = sub.add_parser("hints-agreement",
+                           help="согласие эксперта с подсказками ИИ: вслепую и с подсказками")
+    p_agr.add_argument("--gold", help="файл эталона (по умолчанию data/gold/gold.json)")
+    p_agr.add_argument("--hints", help="файл подсказок (по умолчанию data/gold/hints.json)")
+    p_agr.add_argument("--out", help="папка отчётов (по умолчанию reports)")
+    p_agr.set_defaults(func=cmd_hints_agreement)
 
     p_cmp = sub.add_parser("compare-aligners", help="сравнить методы выравнивания")
     p_cmp.add_argument("--methods", help="через запятую: bertalign,labse,gale_church,llm,"

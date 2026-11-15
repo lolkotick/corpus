@@ -65,11 +65,33 @@ def _set_font(run_or_style: Any, name: str, size: float | None = None) -> None:
         rfonts.set(qn(attr), name)
 
 
+INDENT = Cm(1.27)  # абзацный отступ по требованиям к курсовой
+
+
+def _page_number(paragraph: Paragraph) -> None:
+    """Поле PAGE по центру нижнего колонтитула."""
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    paragraph.paragraph_format.first_line_indent = Cm(0)
+    run = paragraph.add_run()
+    _set_font(run, FONT, 12)
+    for tag, attrs, text in (
+        ("w:fldChar", {qn("w:fldCharType"): "begin"}, None),
+        ("w:instrText", {qn("xml:space"): "preserve"}, "PAGE"),
+        ("w:fldChar", {qn("w:fldCharType"): "end"}, None),
+    ):
+        element = run._r.makeelement(qn(tag), attrs)
+        if text is not None:
+            element.text = text
+        run._r.append(element)
+
+
 def _setup(document: DocxDocument) -> None:
     section = document.sections[0]
     section.page_width, section.page_height = Cm(21), Cm(29.7)
-    section.left_margin, section.right_margin = Cm(3), Cm(1.5)
-    section.top_margin, section.bottom_margin = Cm(2), Cm(2)
+    # Требования к курсовой: поля 30 / 10 / 25 / 25 мм, номер страницы внизу по центру.
+    section.left_margin, section.right_margin = Cm(3), Cm(1)
+    section.top_margin, section.bottom_margin = Cm(2.5), Cm(2.5)
+    _page_number(section.footer.paragraphs[0])
     normal = document.styles["Normal"]
     _set_font(normal, FONT, 14)
     normal.paragraph_format.line_spacing = 1.5
@@ -234,7 +256,7 @@ def convert(md_path: Path, docx_path: Path, figures: Sequence[Path] = ()) -> Pat
             paragraph.append(lines[i].strip())
             i += 1
         p = document.add_paragraph()
-        p.paragraph_format.first_line_indent = Cm(1.25)
+        p.paragraph_format.first_line_indent = INDENT
         add_inline(p, " ".join(paragraph))
 
     images = [f for f in (figures or found_figures) if f.exists()]

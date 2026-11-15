@@ -52,7 +52,8 @@ def test_build_all_without_gold_and_tests(project):
     assert status["approbation.md"].startswith("нет данных")
     out = config.path("reports")
     assert sorted(p.name for p in (out / "docx").glob("*.docx")) == [
-        "aligners.docx", "approbation.docx", "corpus.docx", "errors.docx", "evaluation.docx"]
+        "aligners.docx", "approbation.docx", "corpus.docx", "errors.docx", "evaluation.docx",
+        "hints.docx"]
     assert not config.path("gold").exists()
     corpus_md = (out / "corpus.md").read_text(encoding="utf-8")
     totals = json.loads((DATA / "stats.json").read_text(encoding="utf-8"))["totals"]
@@ -91,6 +92,16 @@ def test_docx_conversion_of_markdown_elements(tmp_path):
     assert "Файлы" not in texts and "python -m pipeline reports" in texts
     styles = {p.style.name for p in doc.paragraphs}
     assert {"List Bullet", "List Bullet 2", "List Number"} <= styles
+    # Оформление по требованиям к курсовой: поля 30 / 10 / 25 / 25 мм, отступ 1,27 см,
+    # номер страницы внизу по центру.
+    section = doc.sections[0]
+    margins = (section.left_margin, section.right_margin, section.top_margin,
+               section.bottom_margin)
+    assert [round(m.mm) for m in margins] == [30, 10, 25, 25]
+    body = next(p for p in doc.paragraphs if p.text.startswith("Абзац"))
+    assert round(body.paragraph_format.first_line_indent.cm, 2) == 1.27
+    footer = section.footer.paragraphs[0]
+    assert footer.alignment == 1 and "PAGE" in footer._p.xml
 
 
 def test_cli_reports(project, monkeypatch):
