@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 
-import type { GoldFile, PairStatus } from '../../lib/gold';
+import { SAMPLE_STRATEGIES, sampleStrategy, type GoldFile, type PairStatus } from '../../lib/gold';
 import { plural } from '../../lib/labels';
 import { buttonClasses, cx } from '../../lib/styles';
 import { DownloadIcon } from '../icons';
@@ -38,7 +38,8 @@ export function Toolbar({
         <div className="min-w-[14rem] flex-1">
           <p className="text-[13.5px] text-muted">
             {gold.annotator ? `Эксперт: ${gold.annotator} · ` : ''}выборка {gold.sample.size}{' '}
-            {plural(gold.sample.size, 'пара', 'пары', 'пар')}, seed {gold.sample.seed}
+            {plural(gold.sample.size, 'пара', 'пары', 'пар')}, seed {gold.sample.seed},{' '}
+            {SAMPLE_STRATEGIES[sampleStrategy(gold)]}
           </p>
           <p className="mt-1 text-[15px]">
             Проверено <b className="tabular-nums">{done}</b> из {total}
@@ -74,7 +75,7 @@ export function Toolbar({
         </summary>
         <div className="mt-3 flex flex-wrap items-end gap-3">
           <label className="grid gap-1 text-[13px] text-muted" htmlFor={`${id}-size`}>
-            Объём выборки (тот же seed, проверки сохраняются)
+            Объём выборки (тот же seed и способ деления, проверки сохраняются)
             <input
               id={`${id}-size`}
               type="number"

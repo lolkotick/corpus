@@ -64,9 +64,13 @@ def shuffle(items: Sequence[Any], random: Callable[[], float]) -> list[Any]:
     return result
 
 
-def sample_pair_ids(pairs: Iterable[dict[str, Any]], size: int, seed: int) -> list[str]:
-    """Пропорциональная выборка по текстам (как в режиме «Проверка» на сайте)."""
-    random = mulberry32(seed)
+DEFAULT_REGISTER = "учебный"
+STRATEGIES = ("proportional", "by-register")
+
+
+def _proportional_order(pairs: Iterable[dict[str, Any]],
+                        random: Callable[[], float]) -> list[str]:
+    """Все пары в порядке пропорциональной выборки по текстам."""
     by_text: dict[str, list[str]] = {}
     for pair in pairs:
         by_text.setdefault(pair["text_id"], []).append(pair["id"])
@@ -76,7 +80,40 @@ def sample_pair_ids(pairs: Iterable[dict[str, Any]], size: int, seed: int) -> li
         offset = random()
         keyed += [((k + offset) / len(order), pair_id) for k, pair_id in enumerate(order)]
     keyed.sort()
-    return [pair_id for _, pair_id in keyed[: max(0, size)]]
+    return [pair_id for _, pair_id in keyed]
+
+
+def sample_pair_ids(
+    pairs: Iterable[dict[str, Any]],
+    size: int,
+    seed: int,
+    strategy: str = "proportional",
+    registers: dict[str, str] | None = None,
+) -> list[str]:
+    """Выборка пар для проверки (как в режиме «Проверка» на сайте).
+
+    proportional — пропорционально размеру текстов; by-register — поровну по регистрам
+    (registers: text_id → регистр; текст без регистра считается учебным). Внутри регистра
+    порядок пропорциональный, регистры чередуются по одной паре в порядке первого
+    появления в корпусе.
+    """
+    if strategy not in STRATEGIES:
+        raise ValueError(f"неизвестная стратегия выборки: {strategy}")
+    random = mulberry32(seed)
+    limit = max(0, size)
+    if strategy == "proportional":
+        return _proportional_order(pairs, random)[:limit]
+    by_register: dict[str, list[dict[str, Any]]] = {}
+    for pair in pairs:
+        register = ((registers or {}).get(pair["text_id"]) or "").strip() or DEFAULT_REGISTER
+        by_register.setdefault(register, []).append(pair)
+    orders = [_proportional_order(group, random) for group in by_register.values()]
+    result: list[str] = []
+    for k in range(max((len(order) for order in orders), default=0)):
+        result += [order[k] for order in orders if k < len(order)]
+        if len(result) >= limit:
+            break
+    return result[:limit]
 
 
 # ─── Чтение файла ─────────────────────────────────────────────────────────

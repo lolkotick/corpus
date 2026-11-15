@@ -167,6 +167,12 @@
    "text_id": "delta"
   }
  ],
+ "registers": {
+  "alpha": "учебный",
+  "beta": "учебный",
+  "gamma": "бытовой",
+  "delta": "официальный"
+ },
  "cases": [
   {
    "seed": 2026,
@@ -265,6 +271,107 @@
     "beta-003",
     "delta-012",
     "gamma-001",
+    "beta-010"
+   ]
+  }
+ ],
+ "register_cases": [
+  {
+   "seed": 2026,
+   "size": 9,
+   "expected": [
+    "beta-008",
+    "gamma-002",
+    "delta-019",
+    "alpha-006",
+    "gamma-003",
+    "delta-016",
+    "beta-007",
+    "gamma-001",
+    "delta-010"
+   ]
+  },
+  {
+   "seed": 1,
+   "size": 5,
+   "expected": [
+    "beta-006",
+    "gamma-002",
+    "delta-015",
+    "alpha-002",
+    "gamma-001"
+   ]
+  },
+  {
+   "seed": 4294967295,
+   "size": 41,
+   "expected": [
+    "beta-009",
+    "gamma-001",
+    "delta-007",
+    "beta-001",
+    "gamma-003",
+    "delta-015",
+    "alpha-001",
+    "gamma-002",
+    "delta-012",
+    "beta-012",
+    "delta-009",
+    "alpha-006",
+    "delta-011",
+    "beta-004",
+    "delta-010",
+    "beta-007",
+    "delta-018",
+    "alpha-003",
+    "delta-013",
+    "beta-005",
+    "delta-005",
+    "beta-003",
+    "delta-003",
+    "alpha-005",
+    "delta-006",
+    "beta-011",
+    "delta-001",
+    "alpha-004",
+    "delta-014",
+    "beta-008",
+    "delta-004",
+    "beta-010",
+    "delta-008",
+    "alpha-002",
+    "delta-017",
+    "beta-002",
+    "delta-002",
+    "beta-006",
+    "delta-019",
+    "alpha-007",
+    "delta-016"
+   ]
+  },
+  {
+   "seed": 123456789,
+   "size": 20,
+   "expected": [
+    "beta-005",
+    "gamma-002",
+    "delta-004",
+    "alpha-003",
+    "gamma-001",
+    "delta-006",
+    "beta-011",
+    "gamma-003",
+    "delta-014",
+    "beta-006",
+    "delta-016",
+    "alpha-007",
+    "delta-001",
+    "beta-007",
+    "delta-007",
+    "alpha-005",
+    "delta-002",
+    "beta-003",
+    "delta-017",
     "beta-010"
    ]
   }

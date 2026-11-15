@@ -12,8 +12,10 @@ import {
   pairStatus,
   progress,
   resizeSample,
+  sampleByRegister,
   sampleByText,
   samplePairIds,
+  sampleStrategy,
   setAlignmentVerdict,
   setItemFix,
   setItemVerdict,
@@ -50,6 +52,8 @@ function syntheticCorpus(): Corpus {
 interface CrossCheck {
   pairs: { id: string; text_id: string }[];
   cases: { seed: number; size: number; expected: string[] }[];
+  registers: Record<string, string>;
+  register_cases: { seed: number; size: number; expected: string[] }[];
 }
 
 describe('выборка для проверки', () => {
@@ -93,6 +97,68 @@ describe('выборка для проверки', () => {
     for (const c of data.cases) {
       expect(samplePairIds(shared, c.size, c.seed)).toEqual(c.expected);
     }
+    const [base] = CORPUS.texts;
+    if (!base) throw new Error('нет текста в фикстуре');
+    const withRegisters: Corpus = {
+      ...shared,
+      texts: Object.entries(data.registers).map(([id, register]) => ({ ...base, id, register })),
+    };
+    expect(data.register_cases.length).toBeGreaterThan(0);
+    for (const c of data.register_cases) {
+      expect(samplePairIds(withRegisters, c.size, c.seed, 'by-register')).toEqual(c.expected);
+    }
+  });
+});
+
+describe('выборка поровну по регистрам', () => {
+  // a + b — учебный (10 + 20 пар), c — официальный (30 пар).
+  const base = syntheticCorpus();
+  const corpus: Corpus = {
+    ...base,
+    texts: base.texts.map((t) => ({ ...t, register: t.id === 'c' ? 'официальный' : '' })),
+  };
+
+  it('делит выборку между регистрами поровну, а внутри регистра — по размеру текстов', () => {
+    const ids = samplePairIds(corpus, 24, 2026, 'by-register');
+    expect(new Set(ids).size).toBe(24);
+    expect(sampleByRegister(corpus, ids)).toEqual([
+      { register: 'учебный', sampled: 12, total: 30 },
+      { register: 'официальный', sampled: 12, total: 30 },
+    ]);
+    const [a, b] = sampleByText(corpus, ids).map((r) => r.sampled);
+    // 10 : 20 → 4 : 8
+    expect(a).toBeGreaterThanOrEqual(3);
+    expect(a).toBeLessThanOrEqual(5);
+    expect((a ?? 0) + (b ?? 0)).toBe(12);
+  });
+
+  it('при увеличении N сохраняет прежнюю выборку и не выходит за размер корпуса', () => {
+    const small = samplePairIds(corpus, 9, 5, 'by-register');
+    expect(samplePairIds(corpus, 31, 5, 'by-register').slice(0, 9)).toEqual(small);
+    expect(samplePairIds(corpus, 999, 5, 'by-register')).toHaveLength(60);
+  });
+
+  it('стратегия записывается в файл и сохраняется при изменении объёма', () => {
+    const gold = newGoldFile(
+      corpus,
+      { annotator: '', size: 10, seed: 3, strategy: 'by-register' },
+      NOW,
+    );
+    expect(gold.sample.strategy).toBe('by-register');
+    const bigger = resizeSample(gold, corpus, 20, NOW);
+    expect(bigger.sample.pair_ids.slice(0, 10)).toEqual(gold.sample.pair_ids);
+    expect(sampleByRegister(corpus, bigger.sample.pair_ids).map((r) => r.sampled)).toEqual([
+      10, 10,
+    ]);
+    // Файл без поля strategy (старый формат) считается пропорциональным.
+    const legacy = {
+      ...gold,
+      sample: { ...gold.sample, strategy: undefined },
+    } as unknown as Parameters<typeof sampleStrategy>[0];
+    expect(sampleStrategy(legacy)).toBe('proportional');
+    expect(newGoldFile(corpus, { annotator: '', size: 10, seed: 3 }, NOW).sample.strategy).toBe(
+      'proportional',
+    );
   });
 });
 
